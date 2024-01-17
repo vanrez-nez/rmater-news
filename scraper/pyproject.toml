@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "news-scraper"
+version = "0.1.0"
+description = ""
+authors = ["Ivan Juarez <ivan@blindgazer.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+beautifulsoup4 = "^4.12.2"
+html5lib = "^1.1"
+lxml = "^4.9.3"
+requests = "^2.31.0"
+python-dateutil = "^2.8.2"
+jmespath = "^1.0.1"
+openai = "^1.6.1"
+python-dotenv = "^1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

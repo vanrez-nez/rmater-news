@@ -1,0 +1,50 @@
+import json
+from cached_request import get_url
+from scraper_utils import write_articles, parse_date, clean_date_str
+from bs4 import BeautifulSoup
+
+BASE_URL = 'https://www.elsoldemorelia.com.mx'
+
+
+def get_rss_links(section):
+  url = f'{BASE_URL}/{section}/rss.xml'
+  if section == 'index':
+    url = f'{BASE_URL}/rss.xml'
+  response = get_url(url, extension='xml')
+  soup = BeautifulSoup(response, 'lxml-xml')
+  links = soup.select('rss channel item link')
+  # extract link.text from each element of links
+  return [link.text for link in links]
+
+def get_article(url):
+  response = get_url(url, cache_duration=3600*24*30, extension='html')
+  soup = BeautifulSoup(response, 'html.parser')
+  title = soup.select_one('h1').text
+  content = soup.select_one('.content-body p').text
+  author = ''
+  if soup.select_one('.byline'):
+    author = soup.select_one('.byline').text
+  date_str = soup.select_one('.published-date').get_text(strip=True)
+  date_str = clean_date_str(date_str)
+  date = parse_date(date_str)
+  return {
+    'title': title,
+    'content': content,
+    'author': author,
+    'src': url,
+    'date': date.isoformat(),
+  }
+
+if __name__ == "__main__":
+  links = []
+  sections = [
+    'index',
+    'local',
+    'policiaca',
+    'cultura'
+  ]
+  for section in sections:
+    links.extend(get_rss_links(section))
+  links = list(set(links))
+  articles = [get_article(link) for link in links]
+  write_articles(BASE_URL, articles)

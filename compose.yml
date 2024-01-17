@@ -1,0 +1,19 @@
+version: "3"
+services:
+  web:
+    container_name: nuxt-docker
+    build: ./web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app
+      - /app/node_modules/
+      - db-data:/app/storage
+  scraper:
+    container_name: scraper-docker
+    build: ./scraper
+    volumes:
+      - ./scraper:/app
+      - db-data:/app/storage
+volumes:
+  db-data:
