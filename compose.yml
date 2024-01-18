@@ -2,18 +2,25 @@ version: "3"
 services:
   web:
     container_name: nuxt-docker
-    build: ./web
+    build:
+      context: ./web
+      dockerfile: Dockerfile.${BUILD_TARGET}
     ports:
       - "3000:3000"
     volumes:
       - ./web:/app
       - /app/node_modules/
       - db-data:/app/storage
+    environment:
+      - BUILD_TARGET=${BUILD_TARGET}
   scraper:
     container_name: scraper-docker
     build: ./scraper
     volumes:
       - ./scraper:/app
       - db-data:/app/storage
+    environment:
+      - BUILD_TARGET=${BUILD_TARGET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
 volumes:
   db-data:

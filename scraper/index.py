@@ -1,10 +1,11 @@
 import time
+import os
 
 def my_task():
-    # Your task logic here
-    pass
+    # print environment variables
+    print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
 
-interval = 10  # Interval in seconds
+interval = 1  # Interval in seconds
 
 while True:
     try:
