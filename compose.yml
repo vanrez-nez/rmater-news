@@ -20,7 +20,9 @@ services:
       - BUILD_TARGET=${BUILD_TARGET}
   scraper:
     container_name: scraper-docker
-    build: ./scraper
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile.${BUILD_TARGET}
     volumes:
       - ./scraper:/app
       - db-data:/app/storage
