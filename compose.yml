@@ -7,8 +7,13 @@ services:
       dockerfile: Dockerfile.${BUILD_TARGET}
     ports:
       - "3000:3000"
+    expose:
+      - "3000"
+    restart: unless-stopped
     volumes:
-      - ./web:/app
+      - ./web:/app/
+      - /app/.nuxt/
+      - /app/.output/
       - /app/node_modules/
       - db-data:/app/storage
     environment:

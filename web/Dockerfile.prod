@@ -1,23 +1,22 @@
-FROM node:21.5.0
+FROM node:21.5.0 as build
 
 WORKDIR /app
-
 # copy over package.json files
-COPY package.json /app/
-COPY package-lock.json /app/
-
+COPY package*.json ./
 # install all depencies
 RUN npm ci && npm cache clean --force
-
 # copy over all files to the work directory
-ADD . /app
-
+COPY . .
 # build the project
-# RUN npm run build
+RUN npm run build
 
-# expose the host and port 3000 to the server
-ENV HOST 0.0.0.0
-EXPOSE 3000
+FROM node:21.5.0
+WORKDIR /app
+COPY package*.json .
+COPY nuxt.config.ts .
+COPY --from=build /app/.output ./.output
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/.nuxt ./.nuxt
 
 # run the build project with node
-ENTRYPOINT ["npm", "run", "dev"]
+ENTRYPOINT ["node", ".output/server/index.mjs"]

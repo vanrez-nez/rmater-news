@@ -3,21 +3,16 @@ FROM node:21.5.0
 WORKDIR /app
 
 # copy over package.json files
-COPY package.json /app/
-COPY package-lock.json /app/
+COPY package*.json /app/
 
 # install all depencies
-RUN npm ci && npm cache clean --force
+RUN npm install
 
 # copy over all files to the work directory
-ADD . /app
+COPY . .
 
-# build the project
-# RUN npm run build
-
-# expose the host and port 3000 to the server
-ENV HOST 0.0.0.0
-EXPOSE 3000
+# make script executable
+RUN chmod +x /app/entry-dev.sh
 
 # run the build project with node
-ENTRYPOINT ["npm", "run", "dev"]
+ENTRYPOINT ["/app/entry-dev.sh"]
