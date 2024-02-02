@@ -24,7 +24,7 @@ services:
       context: ./scraper
       dockerfile: Dockerfile.${BUILD_TARGET}
     volumes:
-      - ./scraper:/app
+      - ./scraper:/app/
       - db-data:/app/storage
     environment:
       - BUILD_TARGET=${BUILD_TARGET}

@@ -2,7 +2,7 @@
 from datetime import datetime
 import re
 import locale
-from db_handler import DbHandler
+from .db_handler import DbHandler
 
 def clean_date_str(date_str):
     regex = r'\b\d{1,2} de [a-zA-Z]+ de \d{4}\b'

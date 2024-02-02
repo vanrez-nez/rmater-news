@@ -1,1 +1,3 @@
-print("running")
+
+def run():
+  print("running")

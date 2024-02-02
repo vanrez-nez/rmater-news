@@ -1,6 +1,6 @@
 import json
-from cached_request import get_url
-from scraper_utils import write_articles, parse_date, parse_time
+from .cached_request import get_url
+from .scraper_utils import write_articles, parse_date, parse_time
 from bs4 import BeautifulSoup
 
 BASE_URL = 'https://www.quadratin.com.mx'
@@ -50,7 +50,7 @@ def get_section_links(section_name, max_pages):
     links.extend(get_page_links(url))
   return links
 
-if __name__ == "__main__":
+def fetch():
   links = get_rss_links()
   sections = [
     'principal',
@@ -68,3 +68,6 @@ if __name__ == "__main__":
   links = list(set(links))
   articles = [get_article(link) for link in links]
   write_articles(BASE_URL, articles)
+
+if __name__ == "__main__":
+  fetch()

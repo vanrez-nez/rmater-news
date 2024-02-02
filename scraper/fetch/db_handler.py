@@ -1,9 +1,10 @@
 import sqlite3
 import hashlib
+import os
 
 class DbHandler:
     # Constants for configuration
-    DATABASE_PATH = 'news.db'
+    DATABASE_PATH = os.path.join(os.path.dirname(__file__), '..', 'news.db')
 
     def __init__(self):
         self.conn = sqlite3.connect(DbHandler.DATABASE_PATH)
