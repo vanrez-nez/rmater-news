@@ -1,6 +1,6 @@
 import json
-from cached_request import get_url
-from scraper_utils import write_articles, parse_date, clean_date_str
+from .cached_request import get_url
+from .scraper_utils import write_articles, parse_date, clean_date_str
 from bs4 import BeautifulSoup
 
 BASE_URL = 'https://www.changoonga.com'
@@ -39,7 +39,7 @@ def write_json(data):
   with open('./outputs/changoonga.com.json', 'w') as file:
     json.dump(data, file, indent=2)
 
-if __name__ == "__main__":
+def fetch():
   links = []
   sections = [
     'index',
@@ -52,3 +52,6 @@ if __name__ == "__main__":
   links = list(set(links))
   articles = [get_article(link) for link in links]
   write_articles(BASE_URL, articles)
+
+if __name__ == "__main__":
+  fetch()

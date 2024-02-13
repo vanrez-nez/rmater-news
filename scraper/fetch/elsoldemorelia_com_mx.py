@@ -1,10 +1,8 @@
-import json
-from cached_request import get_url
-from scraper_utils import write_articles, parse_date, clean_date_str
 from bs4 import BeautifulSoup
+from .cached_request import get_url
+from .scraper_utils import write_articles, parse_date, clean_date_str
 
 BASE_URL = 'https://www.elsoldemorelia.com.mx'
-
 
 def get_rss_links(section):
   url = f'{BASE_URL}/{section}/rss.xml'
@@ -35,7 +33,7 @@ def get_article(url):
     'date': date.isoformat(),
   }
 
-if __name__ == "__main__":
+def fetch():
   links = []
   sections = [
     'index',
@@ -48,3 +46,6 @@ if __name__ == "__main__":
   links = list(set(links))
   articles = [get_article(link) for link in links]
   write_articles(BASE_URL, articles)
+
+if __name__ == "__main__":
+  fetch()

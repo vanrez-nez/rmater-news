@@ -1,8 +1,8 @@
 import json
-from cached_request import get_url
-from bs4 import BeautifulSoup
-from scraper_utils import write_articles
 import jmespath
+from bs4 import BeautifulSoup
+from .cached_request import get_url
+from .scraper_utils import write_articles
 
 BASE_URL = 'https://mimorelia.com'
 
@@ -31,7 +31,7 @@ def get_article(url):
     'date': date_str,
   }
 
-if __name__ == "__main__":
+def fetch():
   links = []
   sections = [
     'morelia-noticias',
@@ -48,3 +48,6 @@ if __name__ == "__main__":
   links = list(set(links))
   articles = [get_article(link) for link in links]
   write_articles(BASE_URL, articles)
+
+if __name__ == "__main__":
+  fetch()
