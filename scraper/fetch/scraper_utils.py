@@ -11,7 +11,7 @@ def clean_date_str(date_str):
         date_str = match.group(0)
     return date_str
 
-def parse_date(date_str, locale_str = 'es_ES'):
+def parse_date(date_str, locale_str = 'es_ES.UTF-8'):
     # Set the locale
     locale.setlocale(locale.LC_TIME, locale_str)
 
