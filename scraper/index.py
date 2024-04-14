@@ -15,5 +15,12 @@ def fetch_all():
     changoonga_fetch()
     print("Done fetching")
 
-if __name__ == "__main__":
+
+def run():
+    interval = int(os.environ.get("SCRAPPER_UPDATE_INTERVAL", 60))
     fetch_all()
+    time.sleep(interval)
+    run()
+
+if __name__ == "__main__":
+    run()
