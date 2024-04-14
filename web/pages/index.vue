@@ -9,9 +9,7 @@
     <ArticleCard
       v-for="entry in data"
       :key="entry.id"
-      :title="entry.title"
-      :date="entry.date"
-      :content="entry.content"
+      :article="entry"
     />
   </article>
 </template>

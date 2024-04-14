@@ -1,19 +1,41 @@
-<script>
-export default {
-  props: {
-    title: String,
-    date: String,
-    content: String
+<script lang="ts">
+  import dayjs from 'dayjs'
+  import relativeTime from 'dayjs/plugin/relativeTime'
+  import es from 'dayjs/locale/es'
+  dayjs.extend(relativeTime)
+  dayjs.locale(es)
+
+  interface Article {
+    title: string;
+    content: string;
+    url: string;
+    date: string;
+    src: string;
+    author: string;
+    elapsed: string;
   }
-}
+
+  export default {
+    props: {
+      article: {
+        type: Object as () => Article,
+        required: true,
+      }
+    },
+    setup(props: { article: Article }) {
+      const elapsed = dayjs(props.article.date).fromNow(true)
+      props.article.elapsed = elapsed
+      return props
+    }
+  }
 </script>
 
 <template>
   <article>
-    <h2>{{ title }}</h2>
-    <time datetime="{{date}}">
-      <small>{{ date }}</small>
+    <h2>{{ article.title }}</h2>
+    <time :datetime="article.date">
+      <small>Hace {{ article.elapsed }}</small>
     </time>
-    <p>{{ content }}</p>
+    <p>{{ article.content }}</p>
   </article>
 </template>

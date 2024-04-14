@@ -16,6 +16,7 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
+    "dayjs": "^1.11.10",
     "sqlite3": "^5.1.7"
   }
 }
