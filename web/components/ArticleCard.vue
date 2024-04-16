@@ -30,6 +30,12 @@
   }
 </script>
 
+<style>
+  article + article {
+    margin: 2rem 0;
+  }
+</style>
+
 <template>
   <article>
     <h2>{{ article.title }}</h2>

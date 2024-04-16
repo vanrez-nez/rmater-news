@@ -7,7 +7,22 @@ body {
   font-family: "Inter", sans-serif;
   font-optical-sizing: auto;
   font-size: 1.15rem;
-  line-height: 1.25;
+  line-height: 1.5;
   font-weight: 300;
   font-style: normal;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+p {
+  word-wrap: break-word;
+}
+
+main {
+  margin: 0 1rem;
 }
