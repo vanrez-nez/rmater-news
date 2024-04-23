@@ -8,7 +8,8 @@ from fetch.changoonga_com import fetch as changoonga_fetch
 
 def fetch_all():
     # print environment variables
-    print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
+    # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
+    print("Fetching...")
     quadratin_fetch()
     mimorelia_fetch()
     elsoldemorelia_fetch()
@@ -17,10 +18,9 @@ def fetch_all():
 
 
 def run():
-    interval = int(os.environ.get("SCRAPPER_UPDATE_INTERVAL", 60))
+    # interval = int(os.environ.get("SCRAPPER_UPDATE_INTERVAL", 60))
     fetch_all()
-    time.sleep(interval)
-    run()
+    # time.sleep(interval)
 
 if __name__ == "__main__":
     run()

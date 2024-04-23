@@ -1,6 +1,7 @@
-import json
+import re
+from datetime import datetime, timedelta
 from .cached_request import get_url
-from .scraper_utils import write_articles, parse_date, clean_date_str
+from .scraper_utils import write_articles, parse_date, clean_date_str, convert_to_utc
 from bs4 import BeautifulSoup
 
 BASE_URL = 'https://www.changoonga.com'
@@ -21,23 +22,26 @@ def get_article(url):
   soup = BeautifulSoup(response, 'html.parser')
   title = soup.select_one('h1').text
   content = soup.select('.entry-content p:not(:first-child)')
-  content = [p.get_text(strip=True) for p in content]
+  content = [p.get_text() for p in content]
   author = content.pop(0)
   content = '\n'.join(content)
-  date_str = soup.select_one('.date').get_text(strip=True)
-  date_str = clean_date_str(date_str)
-  date = parse_date(date_str)
+  json_content = soup.select_one('#tie-schema-json[type="application/ld+json"]').get_text(strip=True)
+  try:
+    matches = re.search(r'(?<=datePublished":").*?(?=")', json_content)
+    date_str = matches.group(0)
+    date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
+    date = convert_to_utc(date.isoformat())
+  except:
+    date_str = soup.select_one('.date').get_text(strip=True)
+    date_str = clean_date_str(date_str)
+    date = parse_date(date_str)
   return {
     'title': title,
     'content': content,
     'author': author,
     'src': url,
-    'date': date.isoformat(),
+    'date': date,
   }
-
-def write_json(data):
-  with open('./outputs/changoonga.com.json', 'w') as file:
-    json.dump(data, file, indent=2)
 
 def fetch():
   links = []

@@ -1,7 +1,7 @@
-import json
-from .cached_request import get_url
-from .scraper_utils import write_articles, parse_date, parse_time
+from pytz import timezone
 from bs4 import BeautifulSoup
+from .cached_request import get_url
+from .scraper_utils import write_articles, parse_date, parse_time, convert_to_utc
 
 BASE_URL = 'https://www.quadratin.com.mx'
 
@@ -26,18 +26,21 @@ def merge_date_time(date, time):
 def get_article(url):
   response = get_url(url, cache_duration=3600*24*30, extension='html')
   soup = BeautifulSoup(response, 'html.parser')
-  title = soup.select_one('h1').text
-  content = soup.select_one('.q-content__info').text
-  author = soup.select_one('.q-content__redacted').text
+  title = soup.select_one('h1').text.strip()
+  content = soup.select_one('.q-content__info').text.strip()
+  author = soup.select_one('.q-content__redacted').text.strip()
   date_str = soup.select_one('.q-content__time .date').text
   time_str = soup.select_one('.q-content__time .hour').text
   date = merge_date_time(parse_date(date_str), parse_time(time_str))
+  tz = timezone('America/Mexico_City')
+  date = tz.localize(date)
+  date = convert_to_utc(date.isoformat())
   return {
     'title': title,
     'content': content,
     'author': author,
     'src': url,
-    'date': date.isoformat(),
+    'date': date,
   }
 
 def get_section_links(section_name, max_pages):

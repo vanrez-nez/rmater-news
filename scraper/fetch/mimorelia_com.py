@@ -2,7 +2,7 @@ import json
 import jmespath
 from bs4 import BeautifulSoup
 from .cached_request import get_url
-from .scraper_utils import write_articles
+from .scraper_utils import write_articles, convert_to_utc
 
 BASE_URL = 'https://mimorelia.com'
 
@@ -11,6 +11,9 @@ def get_links(collection, page_num):
   response = get_url(url, extension='json')
   data = json.loads(response)
   return jmespath.search('items[*].story.url', data)
+
+def merge_date_time(date, time):
+  return date.replace(hour=time.hour, minute=time.minute)
 
 def get_article(url):
   response = get_url(url, cache_duration=3600*24*30, extension='html')
@@ -22,7 +25,8 @@ def get_article(url):
   content = [el.text for el in content_els]
   content = '\n'.join(content)
   author = soup.select_one('.arr--caption-attribution').text
-  date_str = soup.select_one('time').attrs['datetime']
+  date_str = convert_to_utc(soup.select_one('time').attrs['datetime'])
+
   return {
     'title': title,
     'content': content,

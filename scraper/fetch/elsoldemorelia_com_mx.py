@@ -1,6 +1,8 @@
+import re
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from .cached_request import get_url
-from .scraper_utils import write_articles, parse_date, clean_date_str
+from .scraper_utils import write_articles, convert_to_utc, parse_date, clean_date_str
 
 BASE_URL = 'https://www.elsoldemorelia.com.mx'
 
@@ -17,20 +19,35 @@ def get_rss_links(section):
 def get_article(url):
   response = get_url(url, cache_duration=3600*24*30, extension='html')
   soup = BeautifulSoup(response, 'html.parser')
-  title = soup.select_one('h1').text
-  content = soup.select_one('.content-body p').text
+
+  title = soup.select_one('h1').getText(strip=True)
+  content = soup.select('.content-body > div > p')
+  # remove a paragraph if it contains an article tag
+  content = [p for p in content if not p.select_one('article')]
+  # remove tags that begin with any of the strings in the list to_remove
+  to_remove = ['También te podría interesar:', 'Lee también:', 'Te puede interesar']
+  content = [p for p in content if not any(p.getText(strip=True).startswith(s) for s in to_remove)]
+  content = ' '.join([p.getText() for p in content])
   author = ''
   if soup.select_one('.byline'):
-    author = soup.select_one('.byline').text
-  date_str = soup.select_one('.published-date').get_text(strip=True)
-  date_str = clean_date_str(date_str)
-  date = parse_date(date_str)
+    author = soup.select_one('.byline').getText(strip=True)
+  try:
+    json_content = soup.select_one('script[type="application/ld+json"]').get_text(strip=True)
+    matches = re.search(r'(?<=datePublished": ").*?(?=")', json_content)
+    date_str = matches.group(0)
+    date = datetime.strptime(date_str[:-3], '%Y-%m-%dT%H:%M:%S')
+    date = date + timedelta(hours=5)
+    date = convert_to_utc(date.isoformat())
+  except:
+    date_str = soup.select_one('.published-date').get_text(strip=True)
+    date_str = clean_date_str(date_str)
+    date = parse_date(date_str)
   return {
     'title': title,
     'content': content,
     'author': author,
     'src': url,
-    'date': date.isoformat(),
+    'date': date,
   }
 
 def fetch():

@@ -27,6 +27,7 @@ class DbHandler:
     def save_entry(self, site, title, content, author, src, date):
         cursor = self.conn.cursor()
         id = hashlib.md5(src.encode('utf-8')).hexdigest()
+
         cursor.execute("SELECT * FROM entries WHERE id = ?", (id,))
         if cursor.fetchone():
             # Update existing entry

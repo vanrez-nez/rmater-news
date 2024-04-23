@@ -1,5 +1,6 @@
 # from dateutil import parser
 from datetime import datetime
+import pytz
 import re
 import locale
 from .db_handler import DbHandler
@@ -23,6 +24,7 @@ def parse_date(date_str, locale_str = 'es_ES.UTF-8'):
 
     # Reset the locale to default
     locale.setlocale(locale.LC_TIME, '')
+
     return parsed_date
 
 def parse_time(time_str):
@@ -33,6 +35,15 @@ def parse_time(time_str):
     parsed_time = datetime.strptime(time_str, '%H:%M')
 
     return parsed_time
+
+def convert_to_utc(date_str):
+    # Parse the date string
+    dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+
+    # Convert to UTC
+    dt_utc = dt.astimezone(pytz.utc).isoformat()
+
+    return dt_utc
 
 def write_articles(url, articles):
     db_handler = DbHandler()
