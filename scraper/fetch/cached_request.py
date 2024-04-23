@@ -42,7 +42,7 @@ def get_url(url, cache_duration=3600, extension=None, cache=True):
 
     # Make the full request and cache the result
     print(f"Requesting {url}")
-    response = requests.get(url)
+    response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
     if response.status_code == 200:
         with open(cache_file, 'wb') as file:
             file.write(response.content)

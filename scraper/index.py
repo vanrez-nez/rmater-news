@@ -6,15 +6,17 @@ from fetch.mimorelia_com import fetch as mimorelia_fetch
 from fetch.elsoldemorelia_com_mx import fetch as elsoldemorelia_fetch
 from fetch.changoonga_com import fetch as changoonga_fetch
 from fetch.lavozdemichoacan_com_mx import fetch as lavozdemichoacan_fetch
+from fetch.cbtelevision_com_mx import fetch as cbtelevision_fetch
 def fetch_all():
     # print environment variables
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
     print("Fetching...")
-    quadratin_fetch()
-    mimorelia_fetch()
-    elsoldemorelia_fetch()
-    changoonga_fetch()
-    lavozdemichoacan_fetch()
+    # quadratin_fetch()
+    # mimorelia_fetch()
+    # elsoldemorelia_fetch()
+    # changoonga_fetch()
+    # lavozdemichoacan_fetch()
+    cbtelevision_fetch()
     print("Done fetching")
 
 
