@@ -19,6 +19,16 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
 }
 
+a {
+  color: var(--link-color);
+  text-decoration-color: rgba(var(--link-color), 0.1);
+}
+
+a:hover {
+  color: var(--link-hover-color);
+  text-decoration-color: rgba(var(--link-color), 1);
+}
+
 p {
   word-wrap: break-word;
 }

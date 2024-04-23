@@ -1,11 +1,15 @@
 :root {
-  --background-color: white;
-  --foreground-color: black;
+  --background-color: #eae2e2;
+  --foreground-color: #0f0d0d;
+  --link-color: #0f0d0d;
+  --link-hover-color: #eae2e2;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background-color: #0f0d0d;
     --foreground-color: #eae2e2;
+    --link-color: #eae2e2;
+    --link-hover-color: #ffd3d3;
   }
 }

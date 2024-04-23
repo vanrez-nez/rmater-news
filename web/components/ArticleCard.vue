@@ -12,7 +12,6 @@
     date: string;
     src: string;
     author: string;
-    elapsed: string;
   }
 
   export default {
@@ -22,10 +21,13 @@
         required: true,
       }
     },
-    setup(props: { article: Article }) {
-      const elapsed = dayjs(props.article.date).fromNow(true)
-      props.article.elapsed = elapsed
-      return props
+    computed: {
+      elapsed(): string {
+        return dayjs(this.article.date).fromNow(true);
+      },
+      friendlySrc(): string {
+        return new URL(this.article.src).hostname.replace('www.', '');
+      }
     }
   }
 </script>
@@ -34,14 +36,24 @@
   article + article {
     margin: 2rem 0;
   }
+  .meta {
+    opacity: 0.75;
+  }
+
+  .meta + h2 {
+    margin-top: 0;
+  }
 </style>
 
 <template>
   <article>
+    <small class="meta">
+      <a :href="article.src" target="__blank">{{ friendlySrc }}</a>
+      <time :datetime="article.date">
+        hace {{ elapsed }}
+      </time>
+    </small>
     <h2>{{ article.title }}</h2>
-    <time :datetime="article.date">
-      <small>Hace {{ article.elapsed }}</small>
-    </time>
     <p>{{ article.content }}</p>
   </article>
 </template>

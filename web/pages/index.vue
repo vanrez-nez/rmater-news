@@ -5,7 +5,7 @@
 
 <template>
   <article>
-    <h1>News</h1>
+    <h1>Ultimas noticias</h1>
     <ArticleCard
       v-for="entry in data"
       :key="entry.id"
