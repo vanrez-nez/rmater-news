@@ -22,7 +22,7 @@ def get_article(url):
   content_els = soup.select('.arr--text-element')
   # filter out el if el.text starts with Síguenos en Google News
   content_els = [el for el in content_els if not el.text.startswith('Síguenos en Google News')]
-  content = [el.text for el in content_els]
+  content = [el.getText(strip=True, separator=' ') for el in content_els]
   content = '\n'.join(content)
   author = soup.select_one('.arr--caption-attribution').text
   date_str = convert_to_utc(soup.select_one('time').attrs['datetime'])
