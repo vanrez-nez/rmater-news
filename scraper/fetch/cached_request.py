@@ -17,7 +17,6 @@ def get_extension_from_headers(headers):
         return ''
 
 def get_url(url, cache_duration=3600, extension=None):
-    print(f"Requesting {url}")
     # Ensure the cache directory exists
     if not os.path.exists(CACHE_DIR):
         os.makedirs(CACHE_DIR)
@@ -38,6 +37,7 @@ def get_url(url, cache_duration=3600, extension=None):
             return file.read()
 
     # Make the full request and cache the result
+    print(f"Requesting {url}")
     response = requests.get(url)
     if response.status_code == 200:
         with open(cache_file, 'wb') as file:
