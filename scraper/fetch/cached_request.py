@@ -16,7 +16,7 @@ def get_extension_from_headers(headers):
     else:
         return ''
 
-def get_url(url, cache_duration=3600, extension=None):
+def get_url(url, cache_duration=3600, extension=None, cache=True):
     # Ensure the cache directory exists
     if not os.path.exists(CACHE_DIR):
         os.makedirs(CACHE_DIR)
@@ -30,6 +30,10 @@ def get_url(url, cache_duration=3600, extension=None):
         extension = get_extension_from_headers(response.headers)
 
     cache_file = f"{CACHE_DIR}/{url_hash}.{extension}"
+
+    # remove cache file if it exists
+    if not cache and os.path.exists(cache_file):
+        os.remove(cache_file)
 
     # Check if cached file exists and is within the expiry time
     if os.path.exists(cache_file) and time.time() - os.path.getmtime(cache_file) < cache_duration:

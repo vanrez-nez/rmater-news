@@ -1,3 +1,4 @@
+import emoji
 from pytz import timezone
 from bs4 import BeautifulSoup
 from .cached_request import get_url
@@ -27,7 +28,12 @@ def get_article(url):
   response = get_url(url, cache_duration=3600*24*30, extension='html')
   soup = BeautifulSoup(response, 'html.parser')
   title = soup.select_one('h1').text.strip()
-  content = soup.select_one('.q-content__info').text.strip()
+  content = soup.select_one('.q-content__info')
+  # remove emojis and strip the text
+  content = [p.get_text(strip=True, separator=' ') for p in content]
+  content = [emoji.replace_emoji(p, ' ') for p in content]
+  content = ' '.join(content)
+
   author = soup.select_one('.q-content__redacted').text.strip()
   date_str = soup.select_one('.q-content__time .date').text
   time_str = soup.select_one('.q-content__time .hour').text

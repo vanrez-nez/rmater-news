@@ -1,4 +1,5 @@
 import re
+import emoji
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from .cached_request import get_url
@@ -24,10 +25,20 @@ def get_article(url):
   content = soup.select('.content-body > div > p')
   # remove a paragraph if it contains an article tag
   content = [p for p in content if not p.select_one('article')]
+  content = [p for p in content if not p.select_one('a')]
+  # remove emojis and strip the text
+  content = [p.get_text(strip=True, separator=' ') for p in content]
+  content = [emoji.replace_emoji(p, ' ') for p in content]
   # remove tags that begin with any of the strings in the list to_remove
-  to_remove = ['También te podría interesar:', 'Lee también:', 'Te puede interesar']
-  content = [p for p in content if not any(p.getText(strip=True).startswith(s) for s in to_remove)]
-  content = ' '.join([p.getText() for p in content])
+  to_remove = [
+    'También te podría interesar:',
+    'Lee también:',
+    'También lee:'
+    'Te puede interesar',
+    '➡️ Suscríbete a nuestro Newsletter'
+  ]
+  content = [p for p in content if not any(p.startswith(s) for s in to_remove)]
+  content = ' '.join(content)
   author = ''
   if soup.select_one('.byline'):
     author = soup.select_one('.byline').getText(strip=True)

@@ -18,11 +18,12 @@ def get_rss_links(section):
   return [link.text for link in links]
 
 def get_article(url):
-  response = get_url(url, cache_duration=3600*24*30, extension='html')
+  response = get_url(url, cache_duration=3600*24*30, extension='html', cache=False)
   soup = BeautifulSoup(response, 'html.parser')
-  title = soup.select_one('h1').text
+  title = soup.select_one('h1').getText(strip=True)
   content = soup.select('.entry-content p:not(:first-child)')
   content = [p.get_text() for p in content]
+
   author = content.pop(0)
   content = '\n'.join(content)
   json_content = soup.select_one('#tie-schema-json[type="application/ld+json"]').get_text(strip=True)
