@@ -26,6 +26,7 @@ def get_article(url):
   # remove a paragraph if it contains an article tag
   content = [p for p in content if not p.select_one('article')]
   content = [p for p in content if not p.select_one('a')]
+  content = [p for p in content if not p.select_one('.picture')]
   # remove emojis and strip the text
   content = [p.get_text(strip=True, separator=' ') for p in content]
   content = [emoji.replace_emoji(p, ' ') for p in content]
