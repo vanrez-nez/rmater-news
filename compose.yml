@@ -1,4 +1,3 @@
-version: "3"
 services:
   web:
     container_name: nuxt-docker
@@ -16,6 +15,8 @@ services:
       - /app/.output/
       - /app/node_modules/
       - db-data:/app/storage
+    tmpfs:
+      - /tmp
     environment:
       - BUILD_TARGET=${BUILD_TARGET}
   scraper:

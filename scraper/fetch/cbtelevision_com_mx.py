@@ -29,8 +29,8 @@ def get_article(url):
     date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
     date = convert_to_utc(date.isoformat())
   except:
-    date_str = soup.select_one('meta[property="article:published_time"]').get_text(strip=True)
-    date_str = convert_to_utc(date_str)
+    date_str = soup.select_one('meta[property="article:published_time"]').attrs('content')
+    date = convert_to_utc(date_str)
   return {
     'title': title,
     'content': content,

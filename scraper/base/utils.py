@@ -4,7 +4,7 @@ import re
 from typing import List
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
-from .json_search import JSONSearch
+from base.json_search import JSONSearch
 
 def extract_date(soup: BeautifulSoup) -> str:
     time_date = soup.select_one('time').attrs['datetime']
@@ -29,7 +29,7 @@ def normalize_iso_date(date_str: str, format: str, offset_hours: int = 0) -> str
 def iso_date_to_utc(date_str: str) -> str:
   date_str.replace('Z', '+00:00')
   date = datetime.fromisoformat(date_str)
-  return date.astimezone(pytz.utc).isoformat()
+  return date.astimezone(pytz.utc)
 
 def fix_punctuation_spaces(text: str) -> str:
   # remove double spaces

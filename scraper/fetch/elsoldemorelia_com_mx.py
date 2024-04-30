@@ -1,80 +1,58 @@
-import re
-import emoji
-from datetime import datetime, timedelta
-from bs4 import BeautifulSoup
-from .cached_request import get_url
-from .scraper_utils import write_articles, convert_to_utc, parse_date, clean_date_str
+from base.scraper import Scraper
+from base.url_generator import URLGenerator
+from base.types import BeautSoupType
+from base.types import ScraperArticleType
+from base.utils import nodes_to_lines
+from base.utils import join_lines
+from base.utils import json_search_from_tag
+from base.utils import normalize_iso_date
+from base.utils import iso_date_to_utc
+from base.utils import filter_lines_starting_with
 
-BASE_URL = 'https://www.elsoldemorelia.com.mx'
+def gen_xml_urls(scraper: Scraper, generator: URLGenerator) -> list[str]:
+  return (generator
+    .template('{base_url}/{path}')
+    .static_params({'base_url': scraper.base_url})
+    .each(name='path', values=['rss.xml', 'local/rss.xml', 'policiaca/rss.xml', 'cultura/rss.xml'])
+    .generate()
+  )
 
-def get_rss_links(section):
-  url = f'{BASE_URL}/{section}/rss.xml'
-  if section == 'index':
-    url = f'{BASE_URL}/rss.xml'
-  response = get_url(url, extension='xml')
-  soup = BeautifulSoup(response, 'lxml-xml')
+def parse_xml_urls(scraper: Scraper, soup: BeautSoupType) -> list[str]:
   links = soup.select('rss channel item link')
-  # extract link.text from each element of links
   return [link.text for link in links]
 
-def get_article(url):
-  response = get_url(url, cache_duration=3600*24*30, extension='html')
-  soup = BeautifulSoup(response, 'html.parser')
+def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticleType) -> ScraperArticleType:
+  json = json_search_from_tag(soup)
 
-  title = soup.select_one('h1').getText(strip=True)
-  content = soup.select('.content-body > div > p')
-  # remove a paragraph if it contains an article tag
-  content = [p for p in content if not p.select_one('article')]
-  content = [p for p in content if not p.select_one('a')]
-  content = [p for p in content if not p.select_one('.picture')]
-  # remove emojis and strip the text
-  content = [p.get_text(strip=True, separator=' ') for p in content]
-  content = [emoji.replace_emoji(p, ' ') for p in content]
-  # remove tags that begin with any of the strings in the list to_remove
-  to_remove = [
-    'También te podría interesar:',
-    'Lee también:',
-    'También lee:'
-    'Te puede interesar',
-    '➡️ Suscríbete a nuestro Newsletter'
-  ]
-  content = [p for p in content if not any(p.startswith(s) for s in to_remove)]
-  content = ' '.join(content)
-  author = ''
-  if soup.select_one('.byline'):
-    author = soup.select_one('.byline').getText(strip=True)
-  try:
-    json_content = soup.select_one('script[type="application/ld+json"]').get_text(strip=True)
-    matches = re.search(r'(?<=datePublished": ").*?(?=")', json_content)
-    date_str = matches.group(0)
-    date = datetime.strptime(date_str[:-3], '%Y-%m-%dT%H:%M:%S')
-    date = date + timedelta(hours=5)
-    date = convert_to_utc(date.isoformat())
-  except:
-    date_str = soup.select_one('.published-date').get_text(strip=True)
-    date_str = clean_date_str(date_str)
-    date = parse_date(date_str)
-  return {
-    'title': title,
-    'content': content,
-    'author': author,
-    'src': url,
-    'date': date,
-  }
+  # author
+  author_str = json.search('author.name').split('/')[0].strip()
+  article.author = author_str
 
-def fetch():
-  links = []
-  sections = [
-    'index',
-    'local',
-    'policiaca',
-    'cultura'
-  ]
-  for section in sections:
-    links.extend(get_rss_links(section))
-  links = list(set(links))
-  articles = [get_article(link) for link in links]
-  write_articles(BASE_URL, articles)
+  # date
+  date_str = json.search('datePublished')
+  date_str = normalize_iso_date(date_str[:-3], '%Y-%m-%dT%H:%M:%S', 5)
+  article.published_time = iso_date_to_utc(date_str)
 
-if __name__ == "__main__":
-  fetch()
+  # content
+  node_set = soup.css.select('.content-body > div > p')
+  node_set = [p for p in node_set if not p.select_one('article, a, .picture')]
+  node_set = nodes_to_lines(node_set)
+  start_removals = ['Te puede interesar', 'También lee:', 'Lee también:', 'Suscríbete a nuestro Newsletter']
+  node_set = filter_lines_starting_with(node_set, start_removals)
+  article.content = join_lines(node_set)
+
+  return article
+
+def add_scraper():
+  (
+    Scraper.create('https://www.elsoldemorelia.com.mx')
+    .generate_xml_urls(gen_xml_urls)
+    .parse_xml_urls(parse_xml_urls)
+    .parse_article_content(parse_article)
+    .write_articles_to_db()
+    .run()
+    .debug()
+  )
+
+# if __name__ == "__main__":
+#   fetch()

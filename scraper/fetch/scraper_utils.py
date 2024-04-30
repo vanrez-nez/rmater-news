@@ -47,6 +47,7 @@ def convert_to_utc(date_str):
 
 def write_articles(url, articles):
     db_handler = DbHandler()
+    print(f'Writing {len(articles)} articles from {url} to the DB...')
     for article in articles:
         # hash the url to get a unique id positive int
         db_handler.save_entry(

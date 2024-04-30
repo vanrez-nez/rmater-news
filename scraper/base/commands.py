@@ -1,11 +1,13 @@
+import datetime
 from typing import Callable, Type
-from .types import ScraperType
-from .types import ScrapeUrlsCallbackType, ScrapeJSONCallbackType, ScrapeArticleCallbackType, GenerateURLsCallbackType
-from .request import get_url
 from bs4 import BeautifulSoup
-from .json_search import JSONSearch
-from .scraper_article import ScraperArticle
-from .url_generator import URLGenerator
+from base.types import ScraperType
+from base.types import ScrapeUrlsCallbackType, ScrapeJSONCallbackType, ScrapeArticleCallbackType, GenerateURLsCallbackType
+from base.request import get_url
+from base.json_search import JSONSearch
+from base.scraper_article import ScraperArticle
+from base.url_generator import URLGenerator
+from database.db_handler import write_articles
 
 class Command:
   def execute(self):
@@ -56,12 +58,13 @@ class ParserCommand(Command):
     article = ScraperArticle()
     article.title = soup.select_one('h1').getText(strip=True)
     article.url = self.fetcher.url
+    article.published_time = datetime.datetime.now()
     self.func(self.scraper, soup, article)
     self.scraper.articles.append(article)
 
 class JSONRequestCommand(Command):
   """Command to fetch JSON data and parse it using a callback function"""
-  def __init__(self, scraper, url: str, list_name:str, func: ScrapeJSONCallbackType, **kwargs):
+  def __init__(self, scraper: ScraperType, url: str, list_name:str, func: ScrapeJSONCallbackType, **kwargs):
     self.fetcher = JSONFetcher(url, **kwargs)
     self.scraper = scraper
     self.func = func
@@ -73,8 +76,8 @@ class JSONRequestCommand(Command):
     self.scraper.merge_to(self.list_name, new_lst)
 
 class SpreadListCommand(Command):
-  """This command is used to spread the urls from a list into any command class"""
-  def __init__(self, scraper, cmdClass: Type[Command], spread_list:str, param_name:str, **kwargs):
+  """This command is used to spread a list of values as a parameter into each command class"""
+  def __init__(self, scraper: ScraperType, cmdClass: Type[Command], spread_list:str, param_name:str, **kwargs):
     self.scraper = scraper
     self.spread_list = spread_list
     self.cmdClass = cmdClass
@@ -88,7 +91,7 @@ class SpreadListCommand(Command):
 
 class SoupRequestCommand(Command):
   """This command is used to fetch a url and parse it with BeautifulSoup"""
-  def __init__(self, scraper, url: str, list_name:str, func: ScrapeUrlsCallbackType, **kwargs):
+  def __init__(self, scraper: ScraperType, url: str, list_name:str, func: ScrapeUrlsCallbackType, **kwargs):
     self.fetcher = SoupFetcher(url, **kwargs)
     self.scraper = scraper
     self.func = func
@@ -98,3 +101,11 @@ class SoupRequestCommand(Command):
     soup = self.fetcher.fetch_and_parse()
     new_lst = self.func(self.scraper, soup)
     self.scraper.merge_to(self.list_name, new_lst)
+
+class WriteArticlesCommand(Command):
+  """Command to write articles to the database"""
+  def __init__(self, scraper: ScraperType):
+    self.scraper = scraper
+
+  def execute(self):
+    write_articles(self.scraper.articles)

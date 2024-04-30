@@ -1,8 +1,14 @@
 from typing import List
-from .scraper_article import ScraperArticle
-from .commands import GenerateURLsCallbackType, ScrapeUrlsCallbackType, ScrapeArticleCallbackType, ScrapeJSONCallbackType
-from .commands import Command, SpreadListCommand, SoupRequestCommand, ParserCommand, URLGeneratorCommand, JSONRequestCommand
-from .scraper_debugger import print_start, print_end, print_urls, print_articles, print_commands
+from base.scraper_article import ScraperArticle
+from base.commands import GenerateURLsCallbackType, ScrapeUrlsCallbackType, ScrapeArticleCallbackType, ScrapeJSONCallbackType
+from base.commands import Command
+from base.commands import SpreadListCommand
+from base.commands import SoupRequestCommand
+from base.commands import ParserCommand
+from base.commands import URLGeneratorCommand
+from base.commands import JSONRequestCommand
+from base.commands import WriteArticlesCommand
+from base.scraper_debugger import print_start, print_end, print_urls, print_articles, print_commands
 
 class Scraper:
   def __init__(self, base_url:str, refresh_interval_sec:int = 120) -> None:
@@ -71,7 +77,8 @@ class Scraper:
     return self
 
   def write_articles_to_db(self) -> 'Scraper':
-    # write articles to a database
+    cmd = WriteArticlesCommand(self)
+    self.commands.append(cmd)
     return self
 
   def run(self) -> 'Scraper':

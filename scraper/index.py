@@ -1,36 +1,43 @@
 from typing import List
+from base.types import ScraperArticleType, BeautSoupType, JSONSearchType, URLGeneratorType
 from base.url_generator import URLGenerator
-from base.json_search import JSONSearch
 
 import time
 import os
+import fetch.elsoldemorelia_com_mx
 # import run from the transform module
-from fetch.quadratin_com_mx import fetch as quadratin_fetch
-from fetch.mimorelia_com import fetch as mimorelia_fetch
-from fetch.elsoldemorelia_com_mx import fetch as elsoldemorelia_fetch
-from fetch.changoonga_com import fetch as changoonga_fetch
-from fetch.lavozdemichoacan_com_mx import fetch as lavozdemichoacan_fetch
-from fetch.cbtelevision_com_mx import fetch as cbtelevision_fetch
-from fetch.primeraplana_mx import fetch as primeraplana_fetch
-from base.url_generator import URLGenerator
-from base.scraper import Scraper
+# from fetch.quadratin_com_mx import fetch as quadratin_fetch
+# from fetch.mimorelia_com import fetch as mimorelia_fetch
+# from fetch.elsoldemorelia_com_mx import fetch as elsoldemorelia_fetch
+# from fetch.changoonga_com import fetch as changoonga_fetch
+# from fetch.lavozdemichoacan_com_mx import fetch as lavozdemichoacan_fetch
+# from fetch.cbtelevision_com_mx import fetch as cbtelevision_fetch
+# from fetch.primeraplana_mx import fetch as primeraplana_fetch
+# from base.url_generator import URLGenerator
+# from base.scraper import Scraper
 
-def gen_json_urls(generator: URLGenerator) -> List[str]:
-  return (generator
-    .template('{base_url}/api/v1/collections/{section}?offset={offset}&limit=25')
-    .static_params({'base_url': 'https://mimorelia.com'})
-    .each(name='section', values=['morelia-noticias', 'economia-noticias', 'deportes-noticias', 'eventos'])
-    .each(name='offset', values=range(0, 100, 25))
-    .generate()
-  )
+# def gen_json_urls(generator: URLGenerator) -> List[str]:
+#   return (generator
+#     .template('{base_url}/api/v1/collections/{section}?offset={offset}&limit=25')
+#     .static_params({'base_url': 'https://mimorelia.com'})
+#     .each(name='section', values=['morelia-noticias', 'economia-noticias', 'deportes-noticias', 'eventos'])
+#     .each(name='offset', values=range(0, 50, 25))
+#     .generate()
+#   )
 
-def parse_json_urls(jsonSearch: JSONSearch) -> List[str]:
-  return jsonSearch.search('items[*].story.url')
+# def parse_json_urls(json: JSONSearchType) -> List[str]:
+#   return json.search('items[*].story.url')
+
+# def parse_article(soup: BeautSoupType, article: ScraperArticleType) -> ScraperArticleType:
+#   article.title = soup.select_one('h1').text
+#   article.content = soup.select_one('.arr--text-element').text
+#   return article
 
 def fetch_all():
     # print environment variables
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
     print("Fetching...")
+    fetch.elsoldemorelia_com_mx.add_scraper()
     # quadratin_fetch()
     # mimorelia_fetch()
     # elsoldemorelia_fetch()
@@ -39,15 +46,14 @@ def fetch_all():
     # cbtelevision_fetch()
     # primeraplana_fetch()
 
-    (Scraper
-     .create('https://mimorelia.com')
-     .generate_json_urls(gen_json_urls)
-     .parse_json_urls(parse_json_urls)
-     .run()
-     .debug()
-    )
-
-
+    # (Scraper
+    # .create('https://mimorelia.com')
+    # .generate_json_urls(gen_json_urls)
+    # .parse_json_urls(parse_json_urls)
+    # .parse_article_content(parse_article)
+    # .run()
+    # .debug()
+    # )
 
     # urls = (URLGenerator
     #   .create()
@@ -59,7 +65,7 @@ def fetch_all():
     # )
     # print(urls)
 
-
+    # https://pcmnoticias.mx/category/noticias/michoacan/
     # https://cambiodemichoacan.com.mx/category/morelia/
     # https://1plana.com/ultima_hora/estatales/
     # https://gentedelbalsas.mx/category/estatales/

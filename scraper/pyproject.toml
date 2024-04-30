@@ -17,6 +17,7 @@ openai = "^1.6.1"
 python-dotenv = "^1.0.0"
 pytz = "^2024.1"
 emoji = "^2.11.1"
+sqlalchemy = "^2.0.29"
 
 [tool.poetry.group.dev]
 optional = true
