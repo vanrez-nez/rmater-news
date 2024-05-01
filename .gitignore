@@ -5,6 +5,7 @@
 .nitro
 .cache
 dist
+queue.lock
 
 # Node dependencies
 node_modules

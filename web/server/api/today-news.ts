@@ -2,11 +2,11 @@ import sqlite3 from "sqlite3";
 
 export default defineEventHandler(async (event) => {
   // open sqlite db from file system at storage/news.db
-  const db = new sqlite3.Database('storage/news.db');
+  const db = new sqlite3.Database('storage/scraper.db');
 
   async function getNews() {
     return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM entries WHERE date > date("now", "-1 day") ORDER BY datetime(date) DESC', (err:any, rows:any[]) => {
+      db.all('SELECT * FROM scraped_articles WHERE published_time > date("now", "-1 day") ORDER BY datetime(published_time) DESC', (err:any, rows:any[]) => {
         if (err) {
           reject(err);
         }

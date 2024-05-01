@@ -9,8 +9,7 @@
     title: string;
     content: string;
     url: string;
-    date: string;
-    src: string;
+    published_time: string;
     author: string;
   }
 
@@ -23,10 +22,10 @@
     },
     computed: {
       elapsed(): string {
-        return dayjs(this.article.date).fromNow(true);
+        return dayjs(this.article.published_time).fromNow(true);
       },
       friendlySrc(): string {
-        return new URL(this.article.src).hostname.replace('www.', '');
+        return new URL(this.article.url).hostname.replace('www.', '');
       }
     }
   }
@@ -48,8 +47,8 @@
 <template>
   <article>
     <small class="meta">
-      <a :href="article.src" target="__blank">{{ friendlySrc }}</a>
-      <time :datetime="article.date">
+      <a :href="article.url" target="__blank">{{ friendlySrc }}</a>
+      <time :datetime="article.published_time">
         hace {{ elapsed }}
       </time>
     </small>

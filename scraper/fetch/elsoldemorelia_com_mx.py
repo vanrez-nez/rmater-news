@@ -43,16 +43,14 @@ def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticle
 
   return article
 
-def add_scraper():
-  (
-    Scraper.create('https://www.elsoldemorelia.com.mx')
+def get_scraper() -> Scraper:
+  return (
+    Scraper('https://www.elsoldemorelia.com.mx', refresh_interval_sec=10)
     .generate_xml_urls(gen_xml_urls)
     .parse_xml_urls(parse_xml_urls)
     .parse_article_content(parse_article)
     .write_articles_to_db()
-    .run()
-    .debug()
   )
 
-# if __name__ == "__main__":
-#   fetch()
+if __name__ == "__main__":
+  get_scraper().run()

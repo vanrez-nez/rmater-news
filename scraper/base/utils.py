@@ -6,11 +6,6 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from base.json_search import JSONSearch
 
-def extract_date(soup: BeautifulSoup) -> str:
-    time_date = soup.select_one('time').attrs['datetime']
-    json_date = soup.select_one('script[type="application/ld+json"]').get_text(strip=True)
-    return ''
-
 def strip_emoji(text: str|List[str]) -> str|list[str]:
   if isinstance(text, list):
     return [emoji.replace_emoji(t, ' ') for t in text]
@@ -18,7 +13,9 @@ def strip_emoji(text: str|List[str]) -> str|list[str]:
 
 def json_search_from_tag(soup: BeautifulSoup, selector: str = 'script[type="application/ld+json"]') -> JSONSearch:
   json_content = soup.select_one(selector).get_text(strip=True)
-  return JSONSearch(json_content)
+  # remove new lines causing JSON parsing errors
+  json_content = re.sub(r'\n', '', json_content)
+  return JSONSearch(json_content.strip().encode('utf-8'))
 
 def normalize_iso_date(date_str: str, format: str, offset_hours: int = 0) -> str:
   date = datetime.strptime(date_str, format)

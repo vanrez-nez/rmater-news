@@ -1,3 +1,4 @@
+import time
 from typing import List
 from base.scraper_article import ScraperArticle
 from base.commands import GenerateURLsCallbackType, ScrapeUrlsCallbackType, ScrapeArticleCallbackType, ScrapeJSONCallbackType
@@ -14,6 +15,8 @@ class Scraper:
   def __init__(self, base_url:str, refresh_interval_sec:int = 120) -> None:
     self.base_url = base_url
     self.refresh_interval_sec = refresh_interval_sec
+    self.last_run:float = 0
+    self.running:bool = False
     self.xml_urls:List[str] = []
     self.json_urls:List[str] = []
     self.page_urls:List[str] = []
@@ -21,9 +24,9 @@ class Scraper:
     self.commands:List[Command] = []
     self.articles:List[ScraperArticle] = []
 
-  @classmethod
-  def create(cls, base_url: str, refresh_interval_sec:int = 120) -> 'Scraper':
-    return cls(base_url, refresh_interval_sec)
+  def time_since_last_run(self) -> float:
+    print(f"Time since last run: {self.last_run}")
+    return time.time() - self.last_run
 
   def merge_to(self, list_name: str, new_list: List[str]) -> 'Scraper':
     current_list = getattr(self, list_name)
@@ -47,19 +50,21 @@ class Scraper:
 
   def parse_json_urls(self, func: ScrapeJSONCallbackType) -> 'Scraper':
     cmd = SpreadListCommand(self, cmdClass=JSONRequestCommand, spread_list='json_urls',
-                          param_name='url', func=func, list_name='content_urls')
+                          param_name='url', func=func, list_name='content_urls', cache_duration=0)
     self.commands.append(cmd)
     return self
 
   def parse_xml_urls(self, func: ScrapeUrlsCallbackType) -> 'Scraper':
     cmd = SpreadListCommand(self, cmdClass=SoupRequestCommand, spread_list='xml_urls',
-                          param_name='url', func=func, list_name='content_urls', file_extension='xml', parser='lxml-xml')
+                          param_name='url', func=func, list_name='content_urls',
+                          file_extension='xml', parser='lxml-xml', cache_duration=0)
     self.commands.append(cmd)
     return self
 
   def parse_page_urls(self, func: ScrapeUrlsCallbackType) -> 'Scraper':
     cmd = SpreadListCommand(self, cmdClass=SoupRequestCommand, spread_list='page_urls',
-                          param_name='url', func=func, list_name='content_urls', file_extension='hml', parser='html.parser')
+                          param_name='url', func=func, list_name='content_urls',
+                          file_extension='hml', parser='html.parser', cache_duration=0)
     self.commands.append(cmd)
     return self
 
@@ -82,10 +87,12 @@ class Scraper:
     return self
 
   def run(self) -> 'Scraper':
+    if self.running:
+      return self
+    print(f"Running Scraper for {self.base_url}")
+    self.last_run = time.time()
+    self.running = True
     for command in self.commands:
       command.execute()
+    self.running = False
     return self
-
-  def queue(self) -> 'Scraper':
-    # add current Scraper instance to a queue
-    pass

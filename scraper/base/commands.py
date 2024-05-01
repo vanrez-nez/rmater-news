@@ -41,10 +41,9 @@ class URLGeneratorCommand(Command):
     self.func = func
     self.scraper = scraper
     self.list_name = list_name
-    self.generator = URLGenerator.create()
-
   def execute(self):
-    setattr(self.scraper, self.list_name, self.func(self.scraper, self.generator))
+    generator = URLGenerator.create()
+    setattr(self.scraper, self.list_name, self.func(self.scraper, generator))
 
 class ParserCommand(Command):
   """Command to parse an article using a callback function"""
