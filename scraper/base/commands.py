@@ -1,13 +1,23 @@
 import datetime
-from typing import Callable, Type
+from typing import Callable
+from typing import Type
 from bs4 import BeautifulSoup
 from base.types import ScraperType
-from base.types import ScrapeUrlsCallbackType, ScrapeJSONCallbackType, ScrapeArticleCallbackType, GenerateURLsCallbackType
+from base.types import ScrapeUrlsCallbackType
+from base.types import ScrapeJSONCallbackType
+from base.types import ScrapeArticleCallbackType
+from base.types import GenerateURLsCallbackType
+from base.logging import log
 from base.request import get_url
 from base.json_search import JSONSearch
 from base.scraper_article import ScraperArticle
 from base.url_generator import URLGenerator
 from database.db_handler import write_articles
+from base.scraper_debugger import print_start
+from base.scraper_debugger import print_end
+from base.scraper_debugger import print_urls
+from base.scraper_debugger import print_articles
+from base.scraper_debugger import print_commands
 
 class Command:
   def execute(self):
@@ -108,3 +118,15 @@ class WriteArticlesCommand(Command):
 
   def execute(self):
     write_articles(self.scraper.articles)
+
+class DebugCommand(Command):
+  """Command to print debug information"""
+  def __init__(self, scraper: ScraperType):
+    self.scraper = scraper
+
+  def execute(self):
+    print_start()
+    print_urls(self.scraper)
+    print_articles(self.scraper)
+    print_commands(self.scraper)
+    print_end()

@@ -10,10 +10,10 @@ from base.commands import ParserCommand
 from base.commands import URLGeneratorCommand
 from base.commands import JSONRequestCommand
 from base.commands import WriteArticlesCommand
-from base.scraper_debugger import print_start, print_end, print_urls, print_articles, print_commands
+from base.commands import DebugCommand
 
 class Scraper:
-  def __init__(self, base_url:str, refresh_interval_sec:int = 120) -> None:
+  def __init__(self, base_url:str, refresh_interval_sec:int = 60*5) -> None:
     self.base_url = base_url
     self.refresh_interval_sec = refresh_interval_sec
     self.last_run:float = 0
@@ -50,21 +50,21 @@ class Scraper:
 
   def parse_json_urls(self, func: ScrapeJSONCallbackType) -> 'Scraper':
     cmd = SpreadListCommand(self, cmdClass=JSONRequestCommand, spread_list='json_urls',
-                          param_name='url', func=func, list_name='content_urls', cache_duration=0)
+                          param_name='url', func=func, list_name='content_urls', cache_duration=60)
     self.commands.append(cmd)
     return self
 
   def parse_xml_urls(self, func: ScrapeUrlsCallbackType) -> 'Scraper':
     cmd = SpreadListCommand(self, cmdClass=SoupRequestCommand, spread_list='xml_urls',
                           param_name='url', func=func, list_name='content_urls',
-                          file_extension='xml', parser='lxml-xml', cache_duration=0)
+                          file_extension='xml', parser='lxml-xml', cache_duration=60)
     self.commands.append(cmd)
     return self
 
   def parse_page_urls(self, func: ScrapeUrlsCallbackType) -> 'Scraper':
     cmd = SpreadListCommand(self, cmdClass=SoupRequestCommand, spread_list='page_urls',
                           param_name='url', func=func, list_name='content_urls',
-                          file_extension='hml', parser='html.parser', cache_duration=0)
+                          file_extension='hml', parser='html.parser', cache_duration=60)
     self.commands.append(cmd)
     return self
 
@@ -74,11 +74,8 @@ class Scraper:
     return self
 
   def debug(self) -> 'Scraper':
-    print_start()
-    print_urls(self)
-    print_articles(self)
-    print_commands(self)
-    print_end()
+    cmd = DebugCommand(self)
+    self.commands.append(cmd)
     return self
 
   def write_articles_to_db(self) -> 'Scraper':
