@@ -18,11 +18,20 @@
       article: {
         type: Object as () => Article,
         required: true,
-      }
+      },
     },
     computed: {
+      /**
+       * This specifically addresses the date format (already in UTC timezone) coming from the DB
+       * to include the timezone (2021-09-29 15:00:00.000000) -> (2021-09-29T15:00:00+00:00)
+       */
+      utcDate(): string {
+        const { published_time } = this.article;
+        const fmt = published_time.replace(' ', 'T');
+        return fmt.replace(/(.*)\.\d{6}/, '$1+00:00');
+      },
       elapsed(): string {
-        return dayjs(this.article.published_time).fromNow(true);
+        return dayjs(this.utcDate).fromNow(true);
       },
       friendlySrc(): string {
         return new URL(this.article.url).hostname.replace('www.', '');
@@ -48,7 +57,7 @@
   <article>
     <small class="meta">
       <a :href="article.url" target="__blank">{{ friendlySrc }}</a>
-      <time :datetime="article.published_time">
+      <time :datetime="utcDate">
         hace {{ elapsed }}
       </time>
     </small>

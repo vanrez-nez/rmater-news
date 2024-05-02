@@ -30,7 +30,8 @@ def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticle
 
   # date
   date_str = json.search('datePublished')
-  date_str = normalize_iso_date(date_str[:-3], '%Y-%m-%dT%H:%M:%S', -5)
+  # convert CDT(UTC-5) to UTC
+  date_str = normalize_iso_date(date_str[:-3], '%Y-%m-%dT%H:%M:%S', 5)
   article.published_time = iso_date_to_utc(date_str)
 
   # content
@@ -50,7 +51,7 @@ def get_scraper() -> Scraper:
     .parse_xml_urls(parse_xml_urls)
     .parse_article_content(parse_article)
     .write_articles_to_db()
-    # .debug()
+    .debug()
   )
 
 if __name__ == "__main__":
