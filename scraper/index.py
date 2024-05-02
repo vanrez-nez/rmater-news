@@ -2,6 +2,7 @@ from typing import List
 from base.scraper_queue import ScraperQueue
 import fetch.elsoldemorelia_com_mx
 import fetch.mimorelia_com
+import fetch.cbtelevision_com_mx
 
 # https://pcmnoticias.mx/category/noticias/michoacan/
 # https://cambiodemichoacan.com.mx/category/morelia/
@@ -13,7 +14,8 @@ def start() -> None:
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
     ScraperQueue().add([
         # fetch.elsoldemorelia_com_mx.get_scraper()
-        fetch.mimorelia_com.get_scraper()
+        # fetch.mimorelia_com.get_scraper()
+        fetch.cbtelevision_com_mx.get_scraper()
     ]).start()
 
 
