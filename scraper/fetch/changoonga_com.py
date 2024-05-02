@@ -1,62 +1,56 @@
-import re
-from datetime import datetime, timedelta
-from .cached_request import get_url
-from .scraper_utils import write_articles, parse_date, clean_date_str, convert_to_utc
-from bs4 import BeautifulSoup
+from base.scraper import Scraper
+from base.url_generator import URLGenerator
+from base.types import BeautSoupType
+from base.types import ScraperArticleType
+from base.types import JSONSearchType
+from base.utils import nodes_to_lines
+from base.utils import join_lines
+from base.utils import iso_date_to_utc
+from base.utils import normalize_iso_date
+from base.utils import json_search_from_tag
 
-BASE_URL = 'https://www.changoonga.com'
+def gen_xml_urls(scraper: Scraper, generator: URLGenerator) -> list[str]:
+  return (generator
+    .template('{base_url}/{path}')
+    .static_params({'base_url': scraper.base_url})
+    .each(name='path', values=[
+      'feed/',
+      'category/hardnews/feed/',
+      'category/morelia/feed/',
+      'category/michoacan/feed/'
+    ])
+    .generate()
+  )
 
+def parse_xml_urls(scraper: Scraper, soup: BeautSoupType) -> list[str]:
+  return [link.text for link in soup.select('rss channel item link')]
 
-def get_rss_links(section):
-  url = f'{BASE_URL}/category/{section}/feed/'
-  if section == 'index':
-    url = f'{BASE_URL}/feed/'
-  response = get_url(url, extension='xml')
-  soup = BeautifulSoup(response, 'lxml-xml')
-  links = soup.select('rss channel item link')
-  # extract link.text from each element of links
-  return [link.text for link in links]
+def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticleType) -> ScraperArticleType:
+  jsonSearch = json_search_from_tag(soup, 'script#tie-schema-json[type="application/ld+json"]')
 
-def get_article(url):
-  response = get_url(url, cache_duration=3600*24*30, extension='html', cache=False)
-  soup = BeautifulSoup(response, 'html.parser')
-  title = soup.select_one('h1').getText(strip=True)
-  content = soup.select('.entry-content p:not(:first-child)')
-  content = [p.get_text() for p in content]
+  # author
+  article.author = jsonSearch.search('author.name')
 
-  author = content.pop(0)
-  content = '\n'.join(content)
-  json_content = soup.select_one('#tie-schema-json[type="application/ld+json"]').get_text(strip=True)
-  try:
-    matches = re.search(r'(?<=datePublished":").*?(?=")', json_content)
-    date_str = matches.group(0)
-    date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
-    date = convert_to_utc(date.isoformat())
-  except:
-    date_str = soup.select_one('.date').get_text(strip=True)
-    date_str = clean_date_str(date_str)
-    date = parse_date(date_str)
-  return {
-    'title': title,
-    'content': content,
-    'author': author,
-    'src': url,
-    'date': date,
-  }
+  # date - to UTC from format: 2024-04-30T16:54:08-05:00
+  date_str = jsonSearch.search('datePublished')
+  article.published_time = iso_date_to_utc(date_str)
 
-def fetch():
-  links = []
-  sections = [
-    'index',
-    'hardnews',
-    'morelia',
-    'michoacan',
-  ]
-  for section in sections:
-    links.extend(get_rss_links(section))
-  links = list(set(links))
-  articles = [get_article(link) for link in links]
-  write_articles(BASE_URL, articles)
+  # content - remove first paragraph
+  node_set = soup.select('.entry-content > p:nth-of-type(n+2)')
+  node_set = nodes_to_lines(node_set)
+  article.content = join_lines(node_set)
+
+  return article
+
+def get_scraper() -> Scraper:
+  return (
+    Scraper('https://www.changoonga.com')
+    .generate_xml_urls(gen_xml_urls)
+    .parse_xml_urls(parse_xml_urls)
+    .parse_article_content(parse_article)
+    .write_articles_to_db()
+    # .debug()
+  )
 
 if __name__ == "__main__":
-  fetch()
+  get_scraper().run()

@@ -3,6 +3,7 @@ from base.scraper_queue import ScraperQueue
 import fetch.elsoldemorelia_com_mx
 import fetch.mimorelia_com
 import fetch.cbtelevision_com_mx
+import fetch.changoonga_com
 
 # https://pcmnoticias.mx/category/noticias/michoacan/
 # https://cambiodemichoacan.com.mx/category/morelia/
@@ -15,7 +16,8 @@ def start() -> None:
     ScraperQueue().add([
         # fetch.elsoldemorelia_com_mx.get_scraper()
         # fetch.mimorelia_com.get_scraper()
-        fetch.cbtelevision_com_mx.get_scraper()
+        # fetch.cbtelevision_com_mx.get_scraper()
+        fetch.changoonga_com.get_scraper()
     ]).start()
 
 
