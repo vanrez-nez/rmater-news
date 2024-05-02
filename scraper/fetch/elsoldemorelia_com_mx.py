@@ -30,7 +30,6 @@ def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticle
 
   # date
   date_str = json.search('datePublished')
-  # convert CDT(UTC-5) format to iso
   date_str = normalize_iso_date(date_str[:-3], '%Y-%m-%dT%H:%M:%S', 5)
   article.published_time = iso_date_to_utc(date_str)
 

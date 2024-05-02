@@ -4,6 +4,9 @@ import fetch.elsoldemorelia_com_mx
 import fetch.mimorelia_com
 import fetch.cbtelevision_com_mx
 import fetch.changoonga_com
+import fetch.lavozdemichoacan_com_mx
+import fetch.primeraplana_mx
+import fetch.quadratin_com_mx
 
 # https://pcmnoticias.mx/category/noticias/michoacan/
 # https://cambiodemichoacan.com.mx/category/morelia/
@@ -14,12 +17,14 @@ import fetch.changoonga_com
 def start() -> None:
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
     ScraperQueue().add([
-        # fetch.elsoldemorelia_com_mx.get_scraper()
-        # fetch.mimorelia_com.get_scraper()
-        # fetch.cbtelevision_com_mx.get_scraper()
-        fetch.changoonga_com.get_scraper()
+        fetch.elsoldemorelia_com_mx.get_scraper(),
+        fetch.mimorelia_com.get_scraper(),
+        fetch.cbtelevision_com_mx.get_scraper(),
+        fetch.changoonga_com.get_scraper(),
+        fetch.lavozdemichoacan_com_mx.get_scraper(),
+        fetch.primeraplana_mx.get_scraper(),
+        fetch.quadratin_com_mx.get_scraper(),
     ]).start()
-
 
 if __name__ == "__main__":
     start()

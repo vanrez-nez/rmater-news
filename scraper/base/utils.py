@@ -24,7 +24,7 @@ def normalize_iso_date(date_str: str, format: str, offset_hours: int = 0) -> str
   date = datetime.strptime(date_str, format)
   if (offset_hours != 0):
     date = date + timedelta(hours=offset_hours)
-  if date > datetime.now(pytz.utc):
+  if date.astimezone(pytz.utc) > datetime.now(pytz.utc):
     warn(f'Future date detected: {date_str}')
   return date.isoformat()
 
@@ -55,7 +55,7 @@ def join_lines(lines: list[str], fix_punctuation: bool = True) -> str:
   lines = ' '.join(lines)
   if fix_punctuation:
     lines = fix_punctuation_spaces(lines)
-  return lines
+  return lines.strip()
 
 def filter_lines_starting_with(lines: list[str], text: str|list[str]) -> list:
   removals = text if isinstance(text, list) else [text]

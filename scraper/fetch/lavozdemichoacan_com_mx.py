@@ -1,62 +1,50 @@
-import re
-from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
-from .cached_request import get_url
-from .scraper_utils import write_articles, convert_to_utc
+from base.scraper import Scraper
+from base.url_generator import URLGenerator
+from base.types import BeautSoupType
+from base.types import ScraperArticleType
+from base.utils import nodes_to_lines
+from base.utils import join_lines
+from base.utils import json_search_from_tag
+from base.utils import iso_date_to_utc
 
-BASE_URL = 'https://www.lavozdemichoacan.com.mx'
+def gen_page_urls(scraper: Scraper, generator: URLGenerator) -> list[str]:
+  return (generator
+    .template('{base_url}/seccion/{section}/page/{page_num}')
+    .static_params({'base_url': scraper.base_url})
+    .each(name='section', values=['michoacan', 'seguridad', 'seguridad/accidente'])
+    .each(name='page_num', values=range(1, 5))
+    .generate()
+  )
 
-def get_links(section, page_num):
-  url = f'{BASE_URL}/seccion/{section}/page/{page_num}'
-  response = get_url(url, extension='html')
-  soup = BeautifulSoup(response, 'html.parser')
-  links = soup.select('h2.post-box-title a')
-  return [link['href'] for link in links]
+def parse_page_urls(scraper: Scraper, soup: BeautSoupType) -> list[str]:
+  return [a.attrs['href'] for a in soup.select('h2.post-box-title a')]
 
-def get_article(url):
-  response = get_url(url, cache_duration=3600*24*30, extension='html')
-  soup = BeautifulSoup(response, 'html.parser')
-  title = soup.select_one('h1').text
-  content = soup.select('.entry p')
-  content = [p.get_text() for p in content]
-  content = '\n'.join(content)
-  author = 'La Voz de Michoacán'
-  try:
-    json_content = soup.select_one('body script[type="application/ld+json"]').get_text(strip=True)
-    matches = re.search(r'(?<=datePublished":").*?(?=")', json_content)
-    date_str = matches.group(0)
-    date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
-    date = convert_to_utc(date.isoformat())
-  except:
-    date = ''
-  return {
-    'title': title,
-    'content': content,
-    'author': author,
-    'src': url,
-    'date': date,
-  }
+def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticleType) -> ScraperArticleType:
+  jsonSearch = json_search_from_tag(soup)
 
-def fetch():
-  links = []
-  sections = [
-    'michoacan',
-    'seguridad/accidente'
-  ]
-  for section in sections:
-    for page in range(1, 5):
-      links.extend(get_links(section, page))
-  links = list(set(links))
+  # author
+  article.author = jsonSearch.search('"@graph"[?"@type"==[\'Person\']].name | [0]')
 
-  articles = []
-  for link in links:
-    try:
-      article = get_article(link)
-      articles.append(article)
-    except:
-      print(f'Error while fetching: {link}')
-      pass
-  write_articles(BASE_URL, articles)
+  # date
+  date_str = jsonSearch.search('"@graph"[*].datePublished | [0]')
+  article.published_time = iso_date_to_utc(date_str)
+
+  # content
+  node_set = soup.select('.entry p')
+  node_set = nodes_to_lines(node_set)
+  article.content = join_lines(node_set)
+
+  return article
+
+def get_scraper() -> Scraper:
+  return (
+    Scraper('https://www.lavozdemichoacan.com.mx')
+    .generate_page_urls(gen_page_urls)
+    .parse_page_urls(parse_page_urls)
+    .parse_article_content(parse_article)
+    .write_articles_to_db()
+    # .debug()
+  )
 
 if __name__ == "__main__":
-  fetch()
+  get_scraper().run()
