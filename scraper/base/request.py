@@ -2,7 +2,7 @@ import os
 import time
 import requests
 import hashlib
-from base.logging import log
+from base.logger import log
 
 CACHE_DIR = "cache"
 

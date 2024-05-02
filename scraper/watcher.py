@@ -5,7 +5,7 @@ import threading
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from base.utils import debounce
-from base.logging import log
+from base.logger import log
 
 observer = None
 

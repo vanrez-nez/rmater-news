@@ -1,4 +1,4 @@
-from base.logging import log
+from base.logger import log
 
 def print_urls(scraper):
   for key in ['json_urls', 'xml_urls', 'page_urls', 'content_urls']:

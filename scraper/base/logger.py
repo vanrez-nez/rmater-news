@@ -3,3 +3,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', date
 
 def log(msg: str) -> None:
     logging.info(msg)
+
+def warn(msg: str) -> None:
+    logging.warning(msg)

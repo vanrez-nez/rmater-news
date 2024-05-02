@@ -1,6 +1,6 @@
 import time
 import os
-from base.logging import log
+from base.logger import log
 from typing import List
 from base.types import ScraperType
 

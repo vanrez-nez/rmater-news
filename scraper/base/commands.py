@@ -7,7 +7,7 @@ from base.types import ScrapeUrlsCallbackType
 from base.types import ScrapeJSONCallbackType
 from base.types import ScrapeArticleCallbackType
 from base.types import GenerateURLsCallbackType
-from base.logging import log
+from base.logger import log
 from base.request import get_url
 from base.json_search import JSONSearch
 from base.scraper_article import ScraperArticle

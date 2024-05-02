@@ -1,5 +1,5 @@
 import time
-from base.logging import log
+from base.logger import log
 from typing import List
 from base.scraper_article import ScraperArticle
 from base.commands import GenerateURLsCallbackType, ScrapeUrlsCallbackType, ScrapeArticleCallbackType, ScrapeJSONCallbackType
