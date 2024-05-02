@@ -34,4 +34,5 @@ class URLGenerator:
       params = dict(zip(self.param_order, values))
       params.update(self._static_params)
       urls.append(self._template.format(**params))
-    return urls
+    # deduplicate list
+    return list(set(urls))
