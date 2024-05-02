@@ -1,57 +1,60 @@
-import json
-import jmespath
-from bs4 import BeautifulSoup
-from .cached_request import get_url
-from .scraper_utils import write_articles, convert_to_utc
+from base.scraper import Scraper
+from base.url_generator import URLGenerator
+from base.types import BeautSoupType
+from base.types import ScraperArticleType
+from base.types import JSONSearchType
+from base.utils import nodes_to_lines
+from base.utils import join_lines
+from base.utils import iso_date_to_utc
+from base.utils import filter_lines_starting_with
 
-BASE_URL = 'https://mimorelia.com'
+def gen_json_urls(scraper: Scraper, generator: URLGenerator) -> list[str]:
+  return (generator
+    .template('{base_url}/api/v1/collections/{collection}?offset={offset}&limit=25')
+    .static_params({'base_url': scraper.base_url})
+    .each(name='collection', values=[
+      'morelia-noticias',
+      'michoacan-noticias',
+      'politica-noticias',
+      'economia-noticias',
+      'deportes-noticias',
+      'cultura-noticias',
+      'nota-roja-noticias',
+      'eventos'
+    ])
+    .each(name='offset', values=[0, 25, 50])
+    .generate()
+  )
 
-def get_links(collection, page_num):
-  url = f'{BASE_URL}/api/v1/collections/{collection}?offset={page_num}&limit=25'
-  response = get_url(url, extension='json')
-  data = json.loads(response)
-  return jmespath.search('items[*].story.url', data)
+def parse_json_urls(scraper: Scraper, json_search: JSONSearchType) -> list[str]:
+  return json_search.search('items[*].story.url')
 
-def merge_date_time(date, time):
-  return date.replace(hour=time.hour, minute=time.minute)
+def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticleType) -> ScraperArticleType:\
+  # author
+  article.author = soup.select_one('meta[name="author"]').attrs['content']
 
-def get_article(url):
-  response = get_url(url, cache_duration=3600*24*30, extension='html')
-  soup = BeautifulSoup(response, 'html.parser')
-  title = soup.select_one('h1').text
-  content_els = soup.select('.arr--text-element')
-  # filter out el if el.text starts with Síguenos en Google News
-  content_els = [el for el in content_els if not el.text.startswith('Síguenos en Google News')]
-  content = [el.getText(strip=True, separator=' ') for el in content_els]
-  content = '\n'.join(content)
-  author = soup.select_one('.arr--caption-attribution').text
-  date_str = convert_to_utc(soup.select_one('time').attrs['datetime'])
+  # date
+  date_str = soup.select_one('time').attrs['datetime']
+  article.published_time = iso_date_to_utc(date_str)
 
-  return {
-    'title': title,
-    'content': content,
-    'author': author,
-    'src': url,
-    'date': date_str,
-  }
+  # content
+  node_set = soup.select('.arr--text-element')
+  start_removals = ['Síguenos en Google News']
+  node_set = nodes_to_lines(node_set)
+  node_set = filter_lines_starting_with(node_set, start_removals)
+  article.content = join_lines(node_set)
 
-def fetch():
-  links = []
-  sections = [
-    'morelia-noticias',
-    'michoacan-noticias',
-    'politica-noticias',
-    'economia-noticias',
-    'deportes-noticias',
-    'cultura-noticias',
-    'nota-roja-noticias',
-    'eventos'
-  ]
-  for section in sections:
-    links.extend(get_links(section, 0))
-  links = list(set(links))
-  articles = [get_article(link) for link in links]
-  write_articles(BASE_URL, articles)
+  return article
+
+def get_scraper() -> Scraper:
+  return (
+    Scraper('https://mimorelia.com')
+    .generate_json_urls(gen_json_urls)
+    .parse_json_urls(parse_json_urls)
+    .parse_article_content(parse_article)
+    .write_articles_to_db()
+    # .debug()
+  )
 
 if __name__ == "__main__":
-  fetch()
+  get_scraper().run()
