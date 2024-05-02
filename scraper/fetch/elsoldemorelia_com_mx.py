@@ -25,12 +25,12 @@ def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticle
   json = json_search_from_tag(soup)
 
   # author
-  author_str = json.search('author.name').split('/')[0].strip()
-  article.author = author_str
+  author_str = json.search('author.name')
+  article.author = author_str if author_str else 'El Sol de Morelia'
 
   # date
   date_str = json.search('datePublished')
-  date_str = normalize_iso_date(date_str[:-3], '%Y-%m-%dT%H:%M:%S', 5)
+  date_str = normalize_iso_date(date_str[:-3], '%Y-%m-%dT%H:%M:%S', -5)
   article.published_time = iso_date_to_utc(date_str)
 
   # content
@@ -45,11 +45,12 @@ def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticle
 
 def get_scraper() -> Scraper:
   return (
-    Scraper('https://www.elsoldemorelia.com.mx', refresh_interval_sec=10)
+    Scraper('https://www.elsoldemorelia.com.mx')
     .generate_xml_urls(gen_xml_urls)
     .parse_xml_urls(parse_xml_urls)
     .parse_article_content(parse_article)
     .write_articles_to_db()
+    # .debug()
   )
 
 if __name__ == "__main__":

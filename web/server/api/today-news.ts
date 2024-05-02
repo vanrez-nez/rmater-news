@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
 
   async function getNews() {
     return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM scraped_articles WHERE published_time > date("now", "-1 day") ORDER BY datetime(published_time) DESC', (err:any, rows:any[]) => {
+      db.all('SELECT * FROM scraped_articles WHERE published_time > date("now", "-1 day") ORDER BY published_time DESC', (err:any, rows:any[]) => {
         if (err) {
           reject(err);
         }
