@@ -4,8 +4,10 @@ import re
 from threading import Timer
 from typing import List
 from datetime import datetime, timedelta
+from dateutil import parser
 from bs4 import BeautifulSoup
 from base.json_search import JSONSearch
+from base.logger import warn
 
 def strip_emoji(text: str|List[str]) -> str|list[str]:
   if isinstance(text, list):
@@ -22,11 +24,13 @@ def normalize_iso_date(date_str: str, format: str, offset_hours: int = 0) -> str
   date = datetime.strptime(date_str, format)
   if (offset_hours != 0):
     date = date + timedelta(hours=offset_hours)
+  if date > datetime.now(pytz.utc):
+    warn(f'Future date detected: {date_str}')
   return date.isoformat()
 
 def iso_date_to_utc(date_str: str) -> str:
-  date_str.replace('Z', '+00:00')
-  date = datetime.fromisoformat(date_str)
+  date_str = date_str.replace('Z', '+00:00')
+  date = parser.parse(date_str)
   return date.astimezone(pytz.utc)
 
 def fix_punctuation_spaces(text: str) -> str:
