@@ -1,4 +1,6 @@
 import time
+import os
+from base.logging import log
 from typing import List
 from base.types import ScraperType
 
@@ -8,6 +10,7 @@ class ScraperQueue:
     self.queue: List[ScraperType] = []
     self.running: bool = False
     self.max_running_scrapers: int = 1
+    log(f"New Queue ID: {self.id} - OS PID: {os.getpid()}")
 
   @property
   def running_count(self) -> int:
@@ -22,7 +25,8 @@ class ScraperQueue:
       return f.read()
 
   def is_lock_active(self) -> bool:
-    return str(self.id) != self.read_lock_file()
+    lock_id = self.read_lock_file()
+    return str(self.id) == lock_id
 
   def add(self, scraper: ScraperType|List[ScraperType]) -> 'ScraperQueue':
     scrapers = scraper if isinstance(scraper, list) else [scraper]
@@ -38,7 +42,6 @@ class ScraperQueue:
       return self
     for scraper in self.queue:
       dt = scraper.time_since_last_run()
-      print(scraper.base_url, dt, scraper.running, scraper.last_run)
       if not scraper.running and dt > scraper.refresh_interval_sec:
         scraper.run()
     return self
@@ -48,8 +51,8 @@ class ScraperQueue:
     if not self.running:
       self.running = True
       while self.running:
-        if self.is_lock_active():
-          print('Exiting due missing lock file')
+        if not self.is_lock_active():
+          log(f'Exiting due missing lock file on queue ID:{self.id}...')
           self.running = False
           break
         self.spawn()

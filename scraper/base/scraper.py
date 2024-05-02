@@ -1,4 +1,5 @@
 import time
+from base.logging import log
 from typing import List
 from base.scraper_article import ScraperArticle
 from base.commands import GenerateURLsCallbackType, ScrapeUrlsCallbackType, ScrapeArticleCallbackType, ScrapeJSONCallbackType
@@ -25,7 +26,6 @@ class Scraper:
     self.articles:List[ScraperArticle] = []
 
   def time_since_last_run(self) -> float:
-    print(f"Time since last run: {self.last_run}")
     return time.time() - self.last_run
 
   def merge_to(self, list_name: str, new_list: List[str]) -> 'Scraper':
@@ -89,7 +89,7 @@ class Scraper:
   def run(self) -> 'Scraper':
     if self.running:
       return self
-    print(f"Running Scraper for {self.base_url}")
+    log(f"Running Scraper for {self.base_url}")
     self.last_run = time.time()
     self.running = True
     for command in self.commands:

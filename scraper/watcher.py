@@ -1,46 +1,54 @@
 import subprocess
 import time
-import logging
-import atexit
+import os
+import threading
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import PatternMatchingEventHandler
+from base.utils import debounce
+from base.logging import log
 
 observer = None
 
 def run():
-    command = ["poetry run python index.py", "Change detected"]
-    subprocess.run(command, shell=True)
+    log("Spawning scraper...")
+    subprocess.run(["poetry", "run", "python", "index.py"])
 
-class CustomEventHandler(FileSystemEventHandler):
-    def on_modified(self, event):
-        ignore = ["__pycache__", "cache", "storage", "queue.lock", "."]
-        if any(x in event.src_path for x in ignore): return
-        logging.info(f"{event.event_type} - {event.src_path}")
-        run()
+@debounce(1)
+def spawn_thread():
+    thread = threading.Thread(target=run)
+    thread.start()
+
+def on_change(event):
+    log(f"{event.event_type} - {event.src_path}")
+    spawn_thread()
+
+def get_event_handler():
+    patterns = ["*.py"]
+    event_handler = PatternMatchingEventHandler(patterns)
+    event_handler.on_modified = on_change
+    return event_handler
 
 def start_observer():
     global observer
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    event_handler = CustomEventHandler()
+    event_handler = get_event_handler()
     observer = Observer()
     observer.schedule(event_handler, '.', recursive=True)
     observer.start()
-    logging.info("Watching for changes...")
+    log("Watching for changes...")
     try:
         while True:
             time.sleep(1)
-            print("Running...")
-    except:
+    except KeyboardInterrupt:
         stop_observer()
 
 def stop_observer():
     global observer
-    logging.info("Exiting from watcher...")
+    log("Exiting from watcher...")
     if observer is not None:
         observer.stop()
         observer.join()
 
 if __name__ == "__main__":
-    atexit.register(stop_observer)
+    log("Starting watcher...")
+    spawn_thread()
     start_observer()
-    run()

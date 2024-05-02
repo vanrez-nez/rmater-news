@@ -2,6 +2,7 @@ import os
 import time
 import requests
 import hashlib
+from base.logging import log
 
 CACHE_DIR = "cache"
 
@@ -41,7 +42,7 @@ def get_url(url, cache_duration=3600, extension=None, cache=True):
             return file.read()
 
     # Make the full request and cache the result
-    print(f"Requesting {url}")
+    log(f"Req: {url}")
     response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
     if response.status_code == 200:
         with open(cache_file, 'wb') as file:

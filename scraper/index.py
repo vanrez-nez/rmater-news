@@ -8,10 +8,9 @@ from base.scraper_queue import ScraperQueue
 # https://gentedelbalsas.mx/category/estatales/
 # https://sistemamichoacano.tv/category/noticas/michoacan/
 
-queue = ScraperQueue()
 def start() -> None:
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
-    queue = ScraperQueue().add([
+    ScraperQueue().add([
         fetch.elsoldemorelia_com_mx.get_scraper()
     ]).start()
 
