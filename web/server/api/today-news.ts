@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     return new Promise((resolve, reject) => {
       db.all(`
         SELECT * FROM scraped_articles
-        WHERE published_time > date("now", "-1 day")
+        WHERE published_time > datetime("now", "-24 hours", "utc") AND published_time <= datetime("now", "utc")
         ORDER BY datetime(published_time) DESC
         `, (err:any, rows:any[]) => {
         if (err) {
