@@ -2,7 +2,6 @@ from base.scraper import Scraper
 from base.url_generator import URLGenerator
 from base.types import BeautSoupType
 from base.types import ScraperArticleType
-from base.types import JSONSearchType
 from base.utils import nodes_to_lines
 from base.utils import join_lines
 from base.utils import iso_date_to_utc

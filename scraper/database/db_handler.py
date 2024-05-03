@@ -1,8 +1,8 @@
 import os
 import datetime
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy import create_engine, text, select
-from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
 from base.types import ScraperArticleType
 from database.models import ScrapedArticle
 from database.models import ScrapedSite
@@ -12,6 +12,14 @@ db_path = os.path.join(os.path.dirname(__file__), '..', 'storage/scraper.db')
 engine = create_engine(f'sqlite:///{db_path}', future=True, echo=False)
 Session = sessionmaker(bind=engine)
 Base.metadata.create_all(engine)
+
+def get_last_scraped_time(url: str) -> datetime.datetime:
+  session = Session()
+  site = session.query(ScrapedSite).filter_by(url=url).first()
+  session.close()
+  if site:
+    return site.scraped_time
+  return None
 
 def write_articles(articles: list[ScraperArticleType]) -> bool:
   session = Session()

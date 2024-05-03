@@ -1,4 +1,4 @@
-import time
+from datetime import datetime
 from base.logger import log
 from typing import List
 from base.scraper_article import ScraperArticle
@@ -11,6 +11,7 @@ from base.commands import URLGeneratorCommand
 from base.commands import JSONRequestCommand
 from base.commands import WriteArticlesCommand
 from base.commands import DebugCommand
+from database.db_handler import get_last_scraped_time
 
 class Scraper:
   def __init__(self, base_url:str, refresh_interval_sec:int = 60*5) -> None:
@@ -26,7 +27,7 @@ class Scraper:
     self.articles:List[ScraperArticle] = []
 
   def time_since_last_run(self) -> float:
-    return time.time() - self.last_run
+    return (datetime.now() - get_last_scraped_time(self.base_url)).total_seconds()
 
   def merge_to(self, list_name: str, new_list: List[str]) -> 'Scraper':
     current_list = getattr(self, list_name)
@@ -87,7 +88,6 @@ class Scraper:
     if self.running:
       return self
     log(f"Running Scraper for {self.base_url}")
-    self.last_run = time.time()
     self.running = True
     for command in self.commands:
       command.execute()

@@ -1,6 +1,8 @@
 import time
 import os
 from base.logger import log
+from base.logger import error
+from base.logger import warn
 from typing import List
 from base.types import ScraperType
 
@@ -43,7 +45,10 @@ class ScraperQueue:
     for scraper in self.queue:
       dt = scraper.time_since_last_run()
       if not scraper.running and dt > scraper.refresh_interval_sec:
-        scraper.run()
+        try:
+          scraper.run()
+        except Exception as e:
+          error(f"Error running scraper: {scraper.base_url}", e)
     return self
 
   def start(self) -> 'ScraperQueue':
@@ -52,7 +57,7 @@ class ScraperQueue:
       self.running = True
       while self.running:
         if not self.is_lock_active():
-          log(f'Exiting due missing lock file on queue ID:{self.id}...')
+          warn(f'Exiting due missing lock file on queue ID:{self.id}...')
           self.running = False
           break
         self.spawn()
