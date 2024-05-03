@@ -1,5 +1,6 @@
 from typing import List
 from base.scraper_queue import ScraperQueue
+from base.cache_pruner import prune_cache_files
 import fetch.elsoldemorelia_com_mx
 import fetch.mimorelia_com
 import fetch.cbtelevision_com_mx
@@ -16,6 +17,7 @@ import fetch.quadratin_com_mx
 
 def start() -> None:
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
+    prune_cache_files()
     ScraperQueue().add([
         fetch.elsoldemorelia_com_mx.get_scraper(),
         fetch.mimorelia_com.get_scraper(),
