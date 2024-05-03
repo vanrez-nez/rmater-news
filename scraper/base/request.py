@@ -7,7 +7,11 @@ from base.logger import debug
 
 CACHE_DIR = "cache"
 
-def get_url(url, cache_duration=3600, extension='data', cache=True):
+def get_url(url, cache_duration=3600, extension='', cache=True):
+
+  if not extension:
+    extension = 'data'
+
   # Ensure the cache directory exists
   if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
@@ -22,16 +26,18 @@ def get_url(url, cache_duration=3600, extension='data', cache=True):
 
   # Check if cached file exists and is within the expiry time
   if os.path.exists(cache_file) and time.time() - os.path.getmtime(cache_file) < cache_duration:
-    with open(cache_file, 'rb') as file:
+    with open(cache_file, 'r', encoding='utf-8') as file:
       return file.read()
 
   # Make the full request and cache the result
-  log(f"Req: {url}")
+  debug(f"URL Hash: {url_hash}")
+  log(f"Req: {url_hash}{url}")
   response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+  response.encoding = 'utf-8'
   if response.status_code == 200:
-    with open(cache_file, 'wb') as file:
-      file.write(response.content)
-      return response.content
+    with open(cache_file, 'w', encoding='utf-8') as file:
+      file.write(response.text)
+    return response.text
   else:
     raise Exception(f"Request failed with status code {response.status_code}")
 
