@@ -31,7 +31,7 @@ def get_url(url, cache_duration=3600, extension='', cache=True):
 
   # Make the full request and cache the result
   debug(f"URL Hash: {url_hash}")
-  log(f"Req: {url_hash}{url}")
+  log(f"Req: {url}")
   response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
   response.encoding = 'utf-8'
   if response.status_code == 200:
