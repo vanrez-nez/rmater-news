@@ -35,7 +35,7 @@ def parse_article(scraper: Scraper, soup: BeautSoupType, article: ScraperArticle
 
   # content
   node_set = soup.css.select('.content-body > div > p')
-  node_set = [p for p in node_set if not p.select_one('article, a, .picture')]
+  node_set = [p for p in node_set if not p.select_one('article, section, .picture')]
   node_set = nodes_to_lines(node_set)
   start_removals = ['Te puede interesar', 'También lee:', 'Lee también:', 'Suscríbete a nuestro Newsletter']
   node_set = filter_lines_starting_with(node_set, start_removals)
