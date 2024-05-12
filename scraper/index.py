@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 from base.scraper_queue import ScraperQueue
 from base.cache_pruner import prune_cache_files
@@ -16,20 +17,20 @@ import fetch.quadratin_com_mx
 # https://gentedelbalsas.mx/category/estatales/
 # https://sistemamichoacano.tv/category/noticas/michoacan/
 
-def start() -> None:
+async def start() -> None:
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
     # prune_cache_files()
-    ScraperQueue().add([
-        # fetch.elsoldemorelia_com_mx.get_scraper(),
+    await ScraperQueue().add([
+        fetch.elsoldemorelia_com_mx.get_scraper(),
         fetch.mimorelia_com.get_scraper(),
-        # fetch.cbtelevision_com_mx.get_scraper(),
-        # fetch.changoonga_com.get_scraper(),
-        # fetch.lavozdemichoacan_com_mx.get_scraper(),
-        # fetch.primeraplana_mx.get_scraper(),
-        # fetch.quadratin_com_mx.get_scraper(),
+        fetch.cbtelevision_com_mx.get_scraper(),
+        fetch.changoonga_com.get_scraper(),
+        fetch.lavozdemichoacan_com_mx.get_scraper(),
+        fetch.primeraplana_mx.get_scraper(),
+        fetch.quadratin_com_mx.get_scraper(),
     ]).start()
     # transform_run()
 
 
 if __name__ == "__main__":
-    start()
+    asyncio.run(start())

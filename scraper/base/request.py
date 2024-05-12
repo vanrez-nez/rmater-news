@@ -1,14 +1,15 @@
 import os
 import time
-import requests
+import aiohttp
+import asyncio
 import hashlib
-from base.logger import log
-from base.logger import debug
+from aiofiles import open as aio_open
+from base.logger import log, debug
 
 CACHE_DIR = "cache"
+semaphore = asyncio.Semaphore(5)  # Adjust the number to limit concurrent requests
 
-def get_url(url, cache_duration=3600, extension='', cache=True):
-
+async def get_url(url, cache_duration=3600, extension='', cache=True):
   if not extension:
     extension = 'data'
 
@@ -20,27 +21,39 @@ def get_url(url, cache_duration=3600, extension='', cache=True):
   url_hash = hashlib.md5(url.encode()).hexdigest()
   cache_file = f"{CACHE_DIR}/{url_hash}.{extension}"
 
-  # remove cache file if it exists
+  # Remove cache file if it exists and caching is disabled
   if not cache and os.path.exists(cache_file):
     os.remove(cache_file)
 
   # Check if cached file exists and is within the expiry time
   if os.path.exists(cache_file) and time.time() - os.path.getmtime(cache_file) < cache_duration:
-    with open(cache_file, 'r', encoding='utf-8') as file:
-      return file.read()
+    async with aio_open(cache_file, 'r', encoding='utf-8') as file:
+      return await file.read()
 
   # Make the full request and cache the result
-  debug(f"URL Hash: {url_hash}")
-  log(f"Req: {url}")
-  response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-  response.encoding = 'utf-8'
-  if response.status_code == 200:
-    with open(cache_file, 'w', encoding='utf-8') as file:
-      file.write(response.text)
-    return response.text
-  else:
-    raise Exception(f"Request failed with status code {response.status_code}")
+  async with semaphore:
+    async with aiohttp.ClientSession() as session:
+      debug(f"URL Hash: {url_hash}")
+      log(f"Req: {url}")
+      async with session.get(url, headers={"User-Agent": "Mozilla/5.0"}) as response:
+        try:
+          response_text = await response.text(encoding='utf-8')
+        except Exception as e:
+          response_text = await response.text(encoding='latin-1')
+        if response.status == 200:
+          async with aio_open(cache_file, 'w', encoding='utf-8') as file:
+            await file.write(response_text)
+          return response_text
+        else:
+          raise Exception(f"Request failed with status code {response.status}")
+
+
+async def main():
+  try:
+    data = await get_url("https://api.example.com/data")
+    print(data)
+  except Exception as e:
+    print(str(e))
 
 if __name__ == "__main__":
-  # Example usage
-  data = get_url("https://api.example.com/data")
+  asyncio.run(main())

@@ -1,4 +1,5 @@
-import time
+import asyncio
+import aiofiles
 import os
 from base.logger import log
 from base.logger import error
@@ -11,23 +12,23 @@ class ScraperQueue:
     self.id = id(self)
     self.queue: List[ScraperType] = []
     self.running: bool = False
-    self.max_running_scrapers: int = 1
+    self.max_running_scrapers: int = 5
     log(f"New Queue ID: {self.id} - OS PID: {os.getpid()}")
 
   @property
   def running_count(self) -> int:
     return len([s for s in self.queue if s.running])
 
-  def write_lock_file(self) -> None:
-    with open('queue.lock', 'w') as f:
-      f.write(str(self.id))
+  async def write_lock_file(self) -> None:
+    async with aiofiles.open('queue.lock', 'w') as f:
+      await f.write(str(self.id))
 
-  def read_lock_file(self) -> str:
-    with open('queue.lock', 'r') as f:
-      return f.read()
+  async def read_lock_file(self) -> str:
+    async with aiofiles.open('queue.lock', 'r') as f:
+      return await f.read()
 
-  def is_lock_active(self) -> bool:
-    lock_id = self.read_lock_file()
+  async def is_lock_active(self) -> bool:
+    lock_id = await self.read_lock_file()
     return str(self.id) == lock_id
 
   def add(self, scraper: ScraperType|List[ScraperType]) -> 'ScraperQueue':
@@ -39,29 +40,40 @@ class ScraperQueue:
         self.queue.append(scraper)
     return self
 
-  def spawn(self) -> 'ScraperQueue':
-    if self.running_count >= self.max_running_scrapers:
-      return self
+  async def sync_scrapers_time(self) -> 'ScraperQueue':
     for scraper in self.queue:
-      dt = scraper.time_since_last_run()
-      if not scraper.running and dt > scraper.refresh_interval_sec:
-        try:
-          scraper.run()
-        except Exception as e:
-          error(f"Error running scraper: {scraper.base_url}", e)
+      await scraper.sync_last_run_time()
     return self
 
-  def start(self) -> 'ScraperQueue':
-    self.write_lock_file()
+  async def get_pending(self) -> List[ScraperType]:
+    scrapers = [s for s in self.queue if not s.running]
+    scrapers = [s for s in scrapers if s.time_since_last_run > s.refresh_interval_sec]
+    return scrapers[:self.max_running_scrapers - self.running_count]
+
+  async def spawn(self) -> 'ScraperQueue':
+    scrapers = await self.get_pending()
+    if not scrapers:
+      return self
+    log(f"Running {len(scrapers)} scrapers on queue ID:{self.id}...")
+    for scraper in scrapers:
+      time_since_last_run = scraper.time_since_last_run
+      log(f"{scraper.base_url}: {scraper.running} - {time_since_last_run}")
+    # run all scrapers in the queue in parallel
+    tasks = [scraper.run() for scraper in scrapers]
+    await asyncio.gather(*tasks)
+    return self
+
+  async def start(self) -> 'ScraperQueue':
+    await self.write_lock_file()
+    await self.sync_scrapers_time()
     if not self.running:
       self.running = True
       while self.running:
-        if not self.is_lock_active():
+        if not await self.is_lock_active():
           warn(f'Exiting due missing lock file on queue ID:{self.id}...')
           self.running = False
           break
-        self.spawn()
-        time.sleep(5)
+        await asyncio.gather(*[self.spawn(), asyncio.sleep(1)])
     return self
 
   def stop(self) -> 'ScraperQueue':

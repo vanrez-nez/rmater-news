@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 from typing import Callable
 from typing import Type
@@ -18,9 +19,10 @@ from base.scraper_debugger import print_end
 from base.scraper_debugger import print_urls
 from base.scraper_debugger import print_articles
 from base.scraper_debugger import print_commands
+from base.async_utils import async_wrapper
 
 class Command:
-  def execute(self):
+  async def execute(self):
     raise NotImplementedError
 
 class SoupFetcher:
@@ -31,8 +33,8 @@ class SoupFetcher:
     self.file_extension = file_extension
     self.parser = parser
 
-  def fetch_and_parse(self):
-    content = get_url(self.url, self.cache_duration, extension=self.file_extension)
+  async def fetch_and_parse(self):
+    content = await get_url(self.url, self.cache_duration, extension=self.file_extension)
     return BeautifulSoup(content, self.parser)
 
 class JSONFetcher:
@@ -41,8 +43,8 @@ class JSONFetcher:
     self.url = url
     self.cache_duration = cache_duration
 
-  def fetch_and_parse(self):
-    content = get_url(self.url, self.cache_duration, extension='json')
+  async def fetch_and_parse(self):
+    content = await get_url(self.url, self.cache_duration, extension='json')
     return JSONSearch(content)
 
 class URLGeneratorCommand(Command):
@@ -51,6 +53,8 @@ class URLGeneratorCommand(Command):
     self.func = func
     self.scraper = scraper
     self.list_name = list_name
+
+  @async_wrapper
   def execute(self):
     generator = URLGenerator.create()
     setattr(self.scraper, self.list_name, self.func(self.scraper, generator))
@@ -62,8 +66,8 @@ class ParserCommand(Command):
     self.scraper = scraper
     self.func = func
 
-  def execute(self):
-    soup = self.fetcher.fetch_and_parse()
+  async def execute(self):
+    soup = await self.fetcher.fetch_and_parse()
     article = ScraperArticle()
     article.title = soup.select_one('h1').getText(strip=True)
     article.url = self.fetcher.url
@@ -79,8 +83,8 @@ class JSONRequestCommand(Command):
     self.func = func
     self.list_name = list_name
 
-  def execute(self):
-    json_search = self.fetcher.fetch_and_parse()
+  async def execute(self):
+    json_search = await self.fetcher.fetch_and_parse()
     new_lst = self.func(self.scraper, json_search)
     self.scraper.merge_to(self.list_name, new_lst)
 
@@ -93,10 +97,9 @@ class SpreadListCommand(Command):
     self.param_name = param_name
     self.args = kwargs
 
-  def execute(self):
+  async def execute(self):
     lst = getattr(self.scraper, self.spread_list)
-    for val in lst:
-      self.cmdClass(self.scraper, **{self.param_name:val}, **self.args).execute()
+    await asyncio.gather(*[self.cmdClass(self.scraper, **{self.param_name:val}, **self.args).execute() for val in lst])
 
 class SoupRequestCommand(Command):
   """This command is used to fetch a url and parse it with BeautifulSoup"""
@@ -106,8 +109,8 @@ class SoupRequestCommand(Command):
     self.func = func
     self.list_name = list_name
 
-  def execute(self):
-    soup = self.fetcher.fetch_and_parse()
+  async def execute(self):
+    soup = await self.fetcher.fetch_and_parse()
     new_lst = self.func(self.scraper, soup)
     self.scraper.merge_to(self.list_name, new_lst)
 
@@ -116,14 +119,17 @@ class WriteArticlesCommand(Command):
   def __init__(self, scraper: ScraperType):
     self.scraper = scraper
 
+  @async_wrapper
   def execute(self):
     write_articles(self.scraper.articles)
+    log(f"{self.scraper.base_url}: Writing {len(self.scraper.articles)} articles to the database")
 
 class DebugCommand(Command):
   """Command to print debug information"""
   def __init__(self, scraper: ScraperType):
     self.scraper = scraper
 
+  @async_wrapper
   def execute(self):
     print_start()
     print_urls(self.scraper)
