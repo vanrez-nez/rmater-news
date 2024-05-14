@@ -20,6 +20,7 @@ sqlalchemy = "^2.0.29"
 ollama = "^0.1.9"
 aiofiles = "^23.2.1"
 aiohttp = "^3.9.5"
+langchain-community = "^0.0.38"
 
 [tool.poetry.group.dev]
 optional = true

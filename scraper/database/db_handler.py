@@ -4,6 +4,8 @@ from base.logger import error
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
+from sqlalchemy import desc
+from sqlalchemy import func
 from base.types import ScraperArticleType
 from database.models import Article
 from database.models import Site
@@ -21,6 +23,19 @@ def get_last_scraped_time(url: str) -> datetime.datetime:
   if site:
     return site.scraped_time
   return datetime.datetime.min
+
+def get_articles_without_location(limit: int) -> list[Article]:
+  session = Session()
+  # sort by published_time
+  articles = (session
+              .query(Article)
+              .order_by(desc(func.date(Article.published_time)))
+              .filter(Article.locations == None)
+              .limit(limit)
+              .all()
+            )
+  session.close()
+  return articles
 
 def write_articles(articles: list[ScraperArticleType]) -> bool:
   session = Session()
