@@ -17,13 +17,8 @@ python-dotenv = "^1.0.0"
 pytz = "^2024.1"
 emoji = "^2.11.1"
 sqlalchemy = "^2.0.29"
-ollama = "^0.1.9"
 aiofiles = "^23.2.1"
 aiohttp = "^3.9.5"
-langchain = "^0.1.20"
-langchain-community = "^0.0.38"
-fastembed = "^0.2.7"
-chromadb = "^0.5.0"
 
 [tool.poetry.group.dev]
 optional = true

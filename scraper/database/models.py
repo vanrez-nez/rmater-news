@@ -38,17 +38,11 @@ class Article(Base):
   locations: Mapped[List['Location']] = relationship('Location', secondary='article_locations', back_populates='articles')
   tags: Mapped[List['Tag']] = relationship('Tag', secondary='article_tags', back_populates='articles')
 
-class LocationType(enum.Enum):
-  country = 'country'
-  city = 'city'
-  region = 'region'
-  address = 'address'
-
 class Location(Base):
   __tablename__ = 'locations'
   id: Mapped[str] = mapped_column(String(64), primary_key=True)
   name: Mapped[str] = mapped_column(String(100))
-  type: Mapped[LocationType] = mapped_column(Enum(LocationType))
+  rank_address: Mapped[int] = mapped_column(SmallInteger)
   latitude: Mapped[float] = mapped_column(Numeric(9, 6))
   longitude: Mapped[float] = mapped_column(Numeric(9, 6))
   articles: Mapped[List['Article']] = relationship('Article', secondary='article_locations', back_populates='locations')

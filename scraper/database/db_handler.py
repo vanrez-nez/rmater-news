@@ -7,9 +7,11 @@ from sqlalchemy import create_engine
 from sqlalchemy import desc
 from sqlalchemy import func
 from base.types import ScraperArticleType
+from base.types import ArticleLocationType
 from database.models import Article
 from database.models import Site
 from database.models import Base
+from database.models import Location
 
 db_path = os.path.join(os.path.dirname(__file__), '..', 'storage/scraper.db')
 engine = create_engine(f'sqlite:///{db_path}', future=True, echo=False)
@@ -36,6 +38,29 @@ def get_articles_without_location(limit: int) -> list[Article]:
             )
   session.close()
   return articles
+
+def write_location(scraperArticle: ScraperArticleType, location: ArticleLocationType ) -> bool:
+  session = Session()
+  try:
+    article = session.query(Article).filter_by(url=scraperArticle.url).first()
+    location = session.query(Location).filter_by(id=location.id).first()
+    if not article:
+      error(f"Article not found: {scraperArticle.url}")
+      return False
+    if not location:
+      location = Location(name=location)
+      session.add(location)
+    # check if locations already exists in article
+    if not location in article.locations:
+      article.locations.append(location)
+      session.commit()
+  except Exception as e:
+    error("write_location error:", e)
+    session.rollback()
+    return False
+  finally:
+    session.close()
+    return True
 
 def write_articles(articles: list[ScraperArticleType]) -> bool:
   session = Session()

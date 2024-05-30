@@ -3,13 +3,14 @@ import time
 import aiohttp
 import asyncio
 import hashlib
+from urllib.parse import urlencode
 from aiofiles import open as aio_open
 from base.logger import log, debug
 
 CACHE_DIR = "cache"
 semaphore = asyncio.Semaphore(5)  # Adjust the number to limit concurrent requests
 
-async def get_url(url, cache_duration=3600, extension='', cache=True):
+async def make_request(url, cache_duration=3600, extension='', cache=True, form_data=None, method='GET'):
   if not extension:
     extension = 'data'
 
@@ -35,14 +36,25 @@ async def get_url(url, cache_duration=3600, extension='', cache=True):
     async with aiohttp.ClientSession() as session:
       debug(f"URL Hash: {url_hash}")
       log(f"Req: {url}")
-      async with session.get(url, headers={"User-Agent": "Mozilla/5.0"}) as response:
+      timeout = aiohttp.ClientTimeout(total=60)
+      f_data=None
+      if form_data:
+        f_data = aiohttp.FormData(form_data)
+      async with session.request(
+        url=url,
+        method=method,
+        timeout=timeout,
+        data=f_data,
+        headers={"User-Agent": "Mozilla/5.0"}
+      ) as response:
         try:
           response_text = await response.text(encoding='utf-8')
         except Exception as e:
           response_text = await response.text(encoding='latin-1')
         if response.status == 200:
-          async with aio_open(cache_file, 'w', encoding='utf-8') as file:
-            await file.write(response_text)
+          if cache:
+            async with aio_open(cache_file, 'w', encoding='utf-8') as file:
+              await file.write(response_text)
           return response_text
         else:
           raise Exception(f"Request failed with status code {response.status}")
@@ -50,7 +62,7 @@ async def get_url(url, cache_duration=3600, extension='', cache=True):
 
 async def main():
   try:
-    data = await get_url("https://api.example.com/data")
+    data = await make_request("https://api.example.com/data")
     print(data)
   except Exception as e:
     print(str(e))

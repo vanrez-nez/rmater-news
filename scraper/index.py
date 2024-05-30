@@ -34,7 +34,10 @@ async def run_transform() -> None:
 async def start() -> None:
     # print("OPENAI_API_KEY:", os.environ.get("OPENAI_API_KEY"))
     # prune_cache_files()
-    await asyncio.gather(run_scrapers(), run_transform())
+    await asyncio.gather(
+        run_scrapers(),
+        run_transform()
+    )
 
 if __name__ == "__main__":
     asyncio.run(start())

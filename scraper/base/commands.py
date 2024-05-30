@@ -9,7 +9,7 @@ from base.types import ScrapeJSONCallbackType
 from base.types import ScrapeArticleCallbackType
 from base.types import GenerateURLsCallbackType
 from base.logger import log
-from base.request import get_url
+from base.request import make_request
 from base.json_search import JSONSearch
 from base.scraper_article import ScraperArticle
 from base.url_generator import URLGenerator
@@ -34,7 +34,7 @@ class SoupFetcher:
     self.parser = parser
 
   async def fetch_and_parse(self):
-    content = await get_url(self.url, self.cache_duration, extension=self.file_extension)
+    content = await make_request(self.url, self.cache_duration, extension=self.file_extension)
     return BeautifulSoup(content, self.parser)
 
 class JSONFetcher:
@@ -44,7 +44,7 @@ class JSONFetcher:
     self.cache_duration = cache_duration
 
   async def fetch_and_parse(self):
-    content = await get_url(self.url, self.cache_duration, extension='json')
+    content = await make_request(self.url, self.cache_duration, extension='json')
     return JSONSearch(content)
 
 class URLGeneratorCommand(Command):
