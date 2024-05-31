@@ -11,6 +11,10 @@
     url: string;
     published_time: string;
     author: string;
+    location_names: string;
+    location_latitudes: string;
+    location_longitudes: string;
+    location_rank_addresses: string;
   }
 
   export default {
@@ -35,7 +39,22 @@
       },
       friendlySrc(): string {
         return new URL(this.article.url).hostname.replace('www.', '');
-      }
+      },
+      locations(): string[] {
+        const loc_names = this.article.location_names.split(',');
+        const loc_lats = this.article.location_latitudes.split(',');
+        const loc_lons = this.article.location_longitudes.split(',');
+        const loc_ranks = this.article.location_rank_addresses.split(',');
+        const locations = loc_names.map((name, i) => {
+          return {
+            name,
+            lat: loc_lats[i],
+            lon: loc_lons[i],
+            rank: loc_ranks[i],
+          }
+        });
+        return locations;
+      },
     }
   }
 </script>
@@ -62,6 +81,9 @@
       </time>
     </small>
     <h2>{{ article.title }}</h2>
+    <div v-for="location in locations" :key="location">
+      <a :href="`https://www.openstreetmap.org/#map=${location.rank}/${location.lat}/${location.lon}`" target="__blank">{{ location.name }}</a>
+    </div>
     <p>{{ article.content }}</p>
   </article>
 </template>
