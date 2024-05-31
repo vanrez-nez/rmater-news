@@ -39,23 +39,29 @@ def get_articles_without_location(limit: int) -> list[Article]:
   session.close()
   return articles
 
-def write_location(scraperArticle: ScraperArticleType, location: ArticleLocationType ) -> bool:
+def write_location(scraperArticle: ScraperArticleType, articleLocation: ArticleLocationType ) -> bool:
   session = Session()
   try:
     article = session.query(Article).filter_by(url=scraperArticle.url).first()
-    location = session.query(Location).filter_by(id=location.id).first()
+    location = session.query(Location).filter_by(id=articleLocation.id).first()
     if not article:
       error(f"Article not found: {scraperArticle.url}")
       return False
     if not location:
-      location = Location(name=location)
+      location = Location(
+        id=articleLocation.id,
+        name=articleLocation.name,
+        rank_address=articleLocation.rank_address,
+        latitude=articleLocation.lat,
+        longitude=articleLocation.lon
+      )
       session.add(location)
     # check if locations already exists in article
     if not location in article.locations:
       article.locations.append(location)
       session.commit()
   except Exception as e:
-    error("write_location error:", e)
+    error("@write_location error:", e)
     session.rollback()
     return False
   finally:

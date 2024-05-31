@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Type, List, Callable
-from base.scraper_article import ScraperArticle
+from bs4 import BeautifulSoup
 from base.json_search import JSONSearch
 from base.url_generator import URLGenerator
-from base.article_location import ArticleLocation
-from bs4 import BeautifulSoup
+from entities.scraper_article import ScraperArticle
+from entities.article_location import ArticleLocation
 
 if TYPE_CHECKING:
   from .scraper import Scraper

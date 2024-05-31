@@ -1,14 +1,17 @@
 import datetime
 import urllib.parse
 import hashlib
+from base.serialize import SerializableDict
 
-class ScraperArticle:
-  def __init__(self) -> None:
-    self.title:str = ''
-    self.url:str = ''
-    self.published_time:datetime.datetime = None
-    self.author:str = ''
-    self.content:str = ''
+class ScraperArticle(SerializableDict):
+  def __init__(self, fields: dict = None) -> None:
+    fields = fields or {}
+    self.title:str = fields.get('title', '')
+    self.url:str = fields.get('url', '')
+    self.published_time:datetime.datetime = fields.get('published_time', None)
+    self.author:str = fields.get('author', '')
+    self.content:str = fields.get('content', '')
+    super().__init__(self.__dict__)
 
   @property
   def site_url(self) -> str:

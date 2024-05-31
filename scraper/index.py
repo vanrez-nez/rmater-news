@@ -19,7 +19,7 @@ import fetch.quadratin_com_mx
 
 async def run_scrapers() -> None:
     await ScraperQueue().add([
-        # fetch.elsoldemorelia_com_mx.get_scraper(),
+        fetch.elsoldemorelia_com_mx.get_scraper(),
         # fetch.mimorelia_com.get_scraper(),
         # fetch.cbtelevision_com_mx.get_scraper(),
         # fetch.changoonga_com.get_scraper(),

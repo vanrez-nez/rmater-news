@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from base.logger import log, warn
 from typing import List
-from base.scraper_article import ScraperArticle
+from entities.scraper_article import ScraperArticle
 from base.commands import GenerateURLsCallbackType, ScrapeUrlsCallbackType, ScrapeArticleCallbackType, ScrapeJSONCallbackType
 from base.commands import Command
 from base.commands import SpreadListCommand

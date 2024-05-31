@@ -1,6 +1,10 @@
-class ArticleLocation:
-  def __init__(self, fields: dict) -> None:
-    self.id = fields.get('id')
+from base.serialize import SerializableDict
+
+class ArticleLocation(SerializableDict):
+
+  def __init__(self, fields: dict = None) -> None:
+    fields = fields or {}
+    self.id = fields.get('id', 'none')
     self.place_id = fields.get('place_id')
     self.country = fields.get('country')
     self.state = fields.get('state')
@@ -12,6 +16,7 @@ class ArticleLocation:
     self.rank_address = fields.get('rank_address')
     self.lat = fields.get('lat')
     self.lon = fields.get('lon')
+    super().__init__(self.__dict__)
 
   @property
   def type(self):

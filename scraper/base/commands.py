@@ -11,7 +11,7 @@ from base.types import GenerateURLsCallbackType
 from base.logger import log
 from base.request import make_request
 from base.json_search import JSONSearch
-from base.scraper_article import ScraperArticle
+from entities.scraper_article import ScraperArticle
 from base.url_generator import URLGenerator
 from database.db_handler import write_articles
 from base.scraper_debugger import print_start
@@ -68,10 +68,11 @@ class ParserCommand(Command):
 
   async def execute(self):
     soup = await self.fetcher.fetch_and_parse()
-    article = ScraperArticle()
-    article.title = soup.select_one('h1').getText(strip=True)
-    article.url = self.fetcher.url
-    article.published_time = datetime.datetime.now()
+    article = ScraperArticle({
+      'title': soup.select_one('h1').getText(strip=True),
+      'url': self.fetcher.url,
+      'published_time': datetime.datetime.now(),
+    })
     self.func(self.scraper, soup, article)
     self.scraper.articles.append(article)
 
