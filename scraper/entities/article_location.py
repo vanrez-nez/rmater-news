@@ -11,6 +11,7 @@ class ArticleLocation(SerializableDict):
     self.city = fields.get('city')
     self.county = fields.get('county')
     self.town = fields.get('town')
+    self.village = fields.get('village')
     self.osm_id = fields.get('osm_id')
     self.osm_type = fields.get('osm_type')
     self.rank_address = fields.get('rank_address')
@@ -39,4 +40,4 @@ class ArticleLocation(SerializableDict):
       return self.city
     if (t == 'town' and self.town):
       return self.town
-    return self.town or self.city or self.county or self.state or self.country
+    return self.village or self.town or self.city or self.county or self.state or self.country
